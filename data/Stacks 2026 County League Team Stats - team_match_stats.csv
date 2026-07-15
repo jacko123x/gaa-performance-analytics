@@ -1,7 +1,7 @@
 MatchID,Team,Opponent,Goals,Points,TwoPointers,Wides,Shorts,KickoutsWon,KickoutsLost,ForcedTurnovers,UnforcedTurnovers,FreesConceded,BreakingBallWon,Attacks,TotalShots,TotalScores,ShotsPlay,ScoresPlay,ShotsPlaced,ScoresPlaced
 CL-R1,Austin Stacks,Glenflesk,1,12,3,5,,16,9,7,4,8,0,30,24,16,16,9,8,7
 CL-R1,Glenflesk,Austin Stacks,1,15,3,9,,17,4,6,5,7,4,36,30,19,20,12,10,7
-CL-R2,Austin Stacks,Kilcummin,2,7,3,6,1,15,9,2,4,4,3,,19,12,14,10,5,2
+CL-R2,Austin Stacks,Kilcummin,2,7,3,6,1,15,9,2,4,4,3,30,19,12,14,10,5,2
 CL-R2,Kilcummin,Austin Stacks,1,14,1,11,2,13,3,8,5,2,10,,29,16,24,14,5,2
 CL-R3,Austin Stacks,Beaufort,1,9,3,2,6,11,12,8,7,12,13,33,23,13,20,12,3,1
 CL-R3,Beaufort,Austin Stacks,0,11,4,10,1,7,9,12,5,3,9,35,27,15,14,6,13,9

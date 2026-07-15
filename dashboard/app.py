@@ -109,7 +109,7 @@ fig1.update_layout(
     yaxis_title="Shot Conversion %",
 )
 
-st.plotly_chart(fig1, use_container_width=True)
+st.plotly_chart(fig1, width="stretch")
 
 
 # Kickout win rate chart
@@ -128,7 +128,7 @@ fig2.update_layout(
     yaxis_title="Kickout Win Rate %",
 )
 
-st.plotly_chart(fig2, use_container_width=True)
+st.plotly_chart(fig2, width="stretch")
 
 
 # Turnover differential chart
@@ -145,7 +145,7 @@ fig3.update_layout(
     yaxis_title="Turnover Differential",
 )
 
-st.plotly_chart(fig3, use_container_width=True)
+st.plotly_chart(fig3, width="stretch")
 
 
 # Attack to shot rate chart
@@ -165,7 +165,7 @@ fig4.update_layout(
     yaxis_title="Attack → Shot Rate %",
 )
 
-st.plotly_chart(fig4, use_container_width=True)
+st.plotly_chart(fig4, width="stretch")
 
 
 # -----------------------------
@@ -227,6 +227,6 @@ display_df["AttackShotRate"] = display_df["AttackShotRate"].map(
 # Render table without the dataframe index column
 st.dataframe(
     display_df,
-    use_container_width=True,
+    width="stretch",
     hide_index=True,
 )
