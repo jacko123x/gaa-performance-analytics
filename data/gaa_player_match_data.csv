@@ -1,0 +1,181 @@
+﻿MatchID,Date,Opponent,HomeAway,Result,DataType,SquadNumber,PlayerName,Position,Started,MinutesPlayed,HandpassesTotal,Handpasses1H,Handpasses2H,HandpassTarget,FootpassesTotal,Footpasses1H,Footpasses2H,FootpassTarget,IncompletePasses,FreesWon,FreesConceded,Assists,Points,Goals,TwoPointers,ShotAttempts,Scores,ShotConversionPct
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,1,Mike Tansley,GK,Yes,50,3,1,2,3,2,0,2,2,1,0,0,0,0,0,1,2,1,50.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,2,Colin Griffin,FB,Yes,63,13,5,8,13,11,5,6,12,13,1,1,0,0,0,0,1,0,0.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,3,Colm Brown,FB,Yes,61,17,11,6,19,13,6,7,15,5,1,0,1,1,0,0,2,1,50.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,4,Jack Murphy,HB,No,15,4,2,2,4,3,1,2,4,1,1,0,0,0,0,0,1,0,0.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,7,Ronan Shanahan,HB,Yes,52,27,14,13,28,13,4,9,13,8,0,0,3,1,0,0,2,1,50.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,6,Luke Casey,HB,Yes,58,12,5,7,13,12,8,4,14,3,0,0,1,1,0,0,2,1,50.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,5,Jack O'Shea,HB,Yes,62,17,11,6,19,20,12,8,22,2,0,0,0,0,0,0,0,0,0.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,8,Mike O'Donnell,MF,Yes,64,21,12,9,22,14,4,10,15,11,0,1,1,2,0,0,4,2,50.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,9,Greg Horan,MF,No,16,10,4,6,11,3,1,2,3,4,0,0,1,2,0,0,4,2,50.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,10,David Fitzmaurice,HF,Yes,61,27,17,10,28,24,10,14,27,2,0,1,0,1,0,0,1,1,100.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,11,Cian Purcell,HF,Yes,58,18,9,9,19,12,8,4,13,4,1,0,0,2,0,0,6,2,33.3
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,12,Gavin Casey,HF,No,8,4,1,3,4,2,0,2,2,0,0,0,0,0,0,0,0,0,0.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,13,Ryan O'Driscoll,FF,Yes,65,19,11,8,19,14,4,10,17,3,1,2,1,2,0,0,4,2,50.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,14,Shane O'Callaghan,FF,Yes,53,5,3,2,5,4,1,3,5,0,1,1,1,0,0,0,1,0,0.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,15,Jordan Kissane,FF,Yes,52,20,6,14,21,14,7,7,17,2,1,1,0,0,0,0,1,0,0.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,16,Eoghan Carroll,SUB,No,21,5,3,2,6,3,1,2,3,2,1,1,0,0,0,0,0,0,0.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,17,Fionnan Ryan,SUB,No,24,2,0,2,2,1,0,1,1,0,0,0,0,0,0,0,0,0,0.0
+CL-R1,2026-03-21,Glenflesk,Away,Loss,Synthetic,18,Fiachna Mangan,SUB,No,27,1,0,1,1,1,0,1,1,1,0,0,0,1,0,0,2,1,50.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,1,Mike Tansley,GK,Yes,52,2,0,2,2,3,1,2,3,2,0,0,0,0,0,0,0,0,0.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,2,Colin Griffin,FB,Yes,59,15,6,9,15,13,6,7,13,11,1,1,0,0,0,0,2,0,0.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,3,Colm Brown,FB,Yes,58,14,4,10,16,9,6,3,9,3,1,0,1,1,0,0,1,1,100.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,4,Jack Murphy,HB,Yes,54,13,5,8,13,7,4,3,8,4,2,0,0,0,0,0,0,0,0.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,7,Ronan Shanahan,HB,Yes,63,25,9,16,29,18,8,10,22,11,0,0,3,0,0,0,0,0,0.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,6,Luke Casey,HB,Yes,54,17,7,10,19,8,5,3,10,2,0,0,1,0,0,0,0,0,0.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,5,Jack O'Shea,HB,Yes,58,14,5,9,14,16,6,10,17,2,0,0,0,0,0,0,1,0,0.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,8,Mike O'Donnell,MF,Yes,52,20,10,10,22,8,3,5,10,7,0,1,1,0,0,0,0,0,0.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,9,Greg Horan,MF,No,27,13,7,6,14,5,1,4,6,6,1,0,1,0,0,1,4,1,25.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,10,David Fitzmaurice,HF,Yes,56,19,8,11,21,14,7,7,16,2,0,1,0,4,0,0,6,4,66.7
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,11,Cian Purcell,HF,Yes,62,20,11,9,22,15,8,7,18,3,1,0,0,1,0,0,3,1,33.3
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,12,Gavin Casey,HF,Yes,55,27,9,18,28,15,5,10,17,5,1,0,1,1,0,0,2,1,50.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,13,Ryan O'Driscoll,FF,Yes,52,17,11,6,19,14,4,10,15,3,1,1,1,0,1,0,2,1,50.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,14,Shane O'Callaghan,FF,Yes,64,6,4,2,7,5,3,2,6,0,1,1,1,3,0,0,5,3,60.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,15,Jordan Kissane,FF,Yes,64,24,12,12,25,16,6,10,17,3,1,1,0,2,0,0,5,2,40.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,16,Eoghan Carroll,SUB,No,12,2,0,2,2,1,0,1,1,1,0,0,0,0,0,0,1,0,0.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,17,Fionnan Ryan,SUB,No,8,1,0,1,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0.0
+CL-R2,2026-03-28,Kilcummin,Home,Draw,Synthetic,18,Fiachna Mangan,SUB,No,20,1,0,1,1,1,0,1,1,1,0,0,0,1,0,0,2,1,50.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,1,Mike Tansley,GK,Yes,51,2,0,2,2,2,1,1,2,2,0,0,0,0,0,0,1,0,0.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,2,Colin Griffin,FB,Yes,61,12,5,7,13,8,3,5,8,14,1,0,0,0,0,0,0,0,0.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,3,Colm Brown,FB,Yes,64,19,6,13,19,14,8,6,15,3,1,0,1,0,0,0,0,0,0.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,4,Jack Murphy,HB,Yes,62,13,8,5,15,10,3,7,11,2,2,0,1,0,0,0,1,0,0.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,7,Ronan Shanahan,HB,No,25,12,6,6,14,7,4,3,8,3,0,0,1,0,0,0,0,0,0.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,6,Luke Casey,HB,Yes,55,16,9,7,17,12,6,6,13,2,0,0,1,0,0,0,1,0,0.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,5,Jack O'Shea,HB,Yes,58,21,10,11,24,12,6,6,13,3,0,0,0,0,0,0,1,0,0.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,8,Mike O'Donnell,MF,Yes,58,19,9,10,22,10,6,4,10,5,0,1,1,1,0,0,1,1,100.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,9,Greg Horan,MF,Yes,57,27,13,14,28,10,5,5,12,15,2,1,2,1,0,0,2,1,50.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,10,David Fitzmaurice,HF,Yes,55,17,7,10,19,21,7,14,22,1,0,1,0,1,0,0,1,1,100.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,11,Cian Purcell,HF,No,9,3,1,2,4,2,1,1,2,0,0,0,0,1,0,0,2,1,50.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,12,Gavin Casey,HF,Yes,62,28,18,10,32,21,10,11,23,6,1,0,2,1,0,0,1,1,100.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,13,Ryan O'Driscoll,FF,Yes,59,23,10,13,25,17,6,11,18,2,1,2,1,0,0,1,2,1,50.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,14,Shane O'Callaghan,FF,Yes,65,7,2,5,7,5,2,3,5,0,1,1,1,2,0,0,3,2,66.7
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,15,Jordan Kissane,FF,Yes,58,21,13,8,23,9,5,4,10,2,1,2,0,1,0,0,3,1,33.3
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,16,Eoghan Carroll,SUB,Yes,51,13,6,7,13,7,4,3,8,4,1,1,1,0,0,1,2,1,50.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,17,Fionnan Ryan,SUB,No,28,2,1,1,2,1,0,1,1,1,0,0,1,0,0,0,1,0,0.0
+CL-R3,2026-04-04,Beaufort,Away,Loss,Synthetic,18,Fiachna Mangan,SUB,No,30,2,1,1,2,1,0,1,1,1,0,0,0,0,0,0,1,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,1,Mike Tansley,GK,Yes,56,3,2,1,3,3,2,1,4,2,0,0,0,0,0,0,0,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,2,Colin Griffin,FB,Yes,57,15,5,10,16,8,3,5,9,5,2,1,0,0,0,0,0,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,3,Colm Brown,FB,Yes,58,15,5,10,17,11,5,6,13,4,1,0,1,1,0,0,2,1,50.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,4,Jack Murphy,HB,Yes,58,15,8,7,16,8,4,4,10,3,2,0,1,0,0,0,0,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,7,Ronan Shanahan,HB,Yes,60,34,22,12,36,24,14,10,28,6,0,0,2,0,0,0,1,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,6,Luke Casey,HB,Yes,54,14,7,7,16,6,2,4,7,3,0,0,1,0,0,0,1,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,5,Jack O'Shea,HB,Yes,54,13,8,5,15,16,8,8,19,2,0,0,0,0,0,0,1,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,8,Mike O'Donnell,MF,Yes,65,24,9,15,26,8,2,6,9,5,0,2,2,0,0,0,0,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,9,Greg Horan,MF,Yes,51,24,9,15,28,6,4,2,7,12,1,1,2,0,0,0,1,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,10,David Fitzmaurice,HF,Yes,54,17,7,10,18,19,10,9,24,2,0,1,0,2,0,0,3,2,66.7
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,11,Cian Purcell,HF,Yes,64,23,13,10,23,10,5,5,12,3,1,0,0,1,0,1,5,2,40.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,12,Gavin Casey,HF,Yes,51,28,11,17,28,19,11,8,22,5,1,0,1,1,0,0,3,1,33.3
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,13,Ryan O'Driscoll,FF,No,22,6,4,2,7,4,2,2,5,1,1,1,0,0,0,0,1,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,14,Shane O'Callaghan,FF,Yes,58,8,5,3,9,7,4,3,8,0,1,1,1,3,0,0,4,3,75.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,15,Jordan Kissane,FF,No,25,6,4,2,7,5,2,3,5,1,0,1,0,0,0,1,2,1,50.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,16,Eoghan Carroll,SUB,Yes,64,17,6,11,17,7,4,3,8,5,1,3,1,0,0,0,1,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,17,Fionnan Ryan,SUB,No,30,2,1,1,2,1,0,1,1,1,0,0,0,0,0,0,1,0,0.0
+CL-R4,2026-04-11,Dr Crokes,Home,Win,Synthetic,18,Fiachna Mangan,SUB,No,15,1,0,1,1,0,0,0,0,1,0,0,0,0,0,0,1,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,1,Mike Tansley,GK,Yes,56,3,1,2,3,3,1,2,3,1,0,0,0,0,0,0,2,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,2,Colin Griffin,FB,Yes,50,10,5,5,11,11,4,7,11,12,2,1,0,0,0,0,0,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,3,Colm Brown,FB,Yes,54,16,6,10,18,10,3,7,12,4,1,0,1,0,0,0,0,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,4,Jack Murphy,HB,Yes,59,13,7,6,15,11,3,8,12,2,2,0,1,0,0,0,1,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,7,Ronan Shanahan,HB,Yes,54,23,13,10,26,18,6,12,19,7,0,0,2,0,0,0,1,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,6,Luke Casey,HB,Yes,56,14,9,5,15,12,6,6,12,2,0,0,1,0,0,0,1,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,5,Jack O'Shea,HB,Yes,52,12,8,4,13,10,5,5,11,2,0,0,0,0,0,0,0,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,8,Mike O'Donnell,MF,Yes,63,24,15,9,28,12,5,7,13,12,0,1,1,0,0,0,1,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,9,Greg Horan,MF,Yes,53,31,19,12,31,9,5,4,10,18,2,1,2,2,0,0,4,2,50.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,10,David Fitzmaurice,HF,Yes,60,20,9,11,22,16,8,8,17,1,0,0,0,0,0,0,1,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,11,Cian Purcell,HF,Yes,60,20,13,7,21,12,7,5,14,2,0,0,0,2,0,0,6,2,33.3
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,12,Gavin Casey,HF,Yes,63,23,9,14,24,22,11,11,23,5,1,0,1,1,0,0,5,1,20.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,13,Ryan O'Driscoll,FF,Yes,63,18,11,7,19,13,4,9,14,4,1,3,1,0,0,0,1,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,14,Shane O'Callaghan,FF,No,18,2,1,1,2,2,0,2,2,0,0,0,0,1,0,0,2,1,50.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,15,Jordan Kissane,FF,Yes,62,20,11,9,23,13,6,7,16,2,1,2,0,3,0,0,5,3,60.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,16,Eoghan Carroll,SUB,No,15,3,2,1,3,1,0,1,1,1,0,1,0,1,0,0,2,1,50.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,17,Fionnan Ryan,SUB,Yes,52,3,1,2,3,3,2,1,3,1,0,0,0,0,0,0,1,0,0.0
+CL-R5,2026-04-18,Rathmore,Away,Win,Synthetic,18,Fiachna Mangan,SUB,No,10,1,0,1,1,0,0,0,0,0,0,0,0,1,0,0,1,1,100.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,1,Mike Tansley,GK,Yes,51,2,1,1,2,3,2,1,3,2,0,0,0,0,0,0,0,0,0.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,2,Colin Griffin,FB,Yes,59,13,7,6,14,11,5,6,13,11,1,1,0,0,0,0,1,0,0.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,3,Colm Brown,FB,Yes,54,13,4,9,14,10,5,5,12,2,1,0,1,0,0,0,1,0,0.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,4,Jack Murphy,HB,Yes,54,13,4,9,14,10,5,5,12,4,2,0,1,0,0,0,1,0,0.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,7,Ronan Shanahan,HB,Yes,65,27,9,18,31,27,14,13,31,6,0,0,2,1,0,0,2,1,50.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,6,Luke Casey,HB,Yes,54,12,5,7,13,11,6,5,13,3,0,0,1,0,0,0,1,0,0.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,5,Jack O'Shea,HB,Yes,57,17,7,10,19,13,7,6,14,3,0,0,0,1,0,0,2,1,50.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,8,Mike O'Donnell,MF,Yes,56,20,7,13,20,7,3,4,7,5,0,1,1,0,0,0,0,0,0.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,9,Greg Horan,MF,Yes,54,33,14,19,39,7,3,4,8,20,2,1,3,1,0,0,3,1,33.3
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,10,David Fitzmaurice,HF,No,11,5,1,4,5,4,1,3,5,0,0,0,0,1,0,0,1,1,100.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,11,Cian Purcell,HF,Yes,63,15,9,6,17,11,3,8,13,2,0,0,0,1,0,0,4,1,25.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,12,Gavin Casey,HF,Yes,59,26,16,10,28,20,6,14,22,4,1,0,0,1,0,0,3,1,33.3
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,13,Ryan O'Driscoll,FF,Yes,61,18,10,8,21,9,5,4,9,4,1,2,1,2,0,1,5,3,60.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,14,Shane O'Callaghan,FF,Yes,64,9,3,6,10,6,2,4,6,0,1,1,2,0,0,0,1,0,0.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,15,Jordan Kissane,FF,Yes,62,24,13,11,28,14,7,7,17,2,1,1,0,1,0,0,1,1,100.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,16,Eoghan Carroll,SUB,No,20,4,1,3,4,2,1,1,2,2,1,1,0,0,0,0,0,0,0.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,17,Fionnan Ryan,SUB,No,18,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0,1,0,0.0
+CL-R6,2026-05-02,Kenmare,Home,Win,Synthetic,18,Fiachna Mangan,SUB,No,9,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,1,Mike Tansley,GK,Yes,60,3,1,2,3,3,1,2,3,2,0,0,0,0,0,0,0,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,2,Colin Griffin,FB,Yes,60,14,6,8,16,10,6,4,10,10,2,1,0,0,0,0,0,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,3,Colm Brown,FB,Yes,60,16,6,10,19,11,6,5,12,4,1,0,1,0,0,0,0,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,4,Jack Murphy,HB,Yes,60,13,4,9,14,9,4,5,10,4,2,0,1,1,0,0,1,1,100.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,7,Ronan Shanahan,HB,Yes,60,29,19,10,30,19,8,11,20,8,0,0,2,0,0,0,0,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,6,Luke Casey,HB,Yes,60,16,10,6,17,10,4,6,11,3,0,0,1,1,0,0,2,1,50.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,5,Jack O'Shea,HB,Yes,60,18,10,8,19,15,5,10,16,3,0,0,0,0,0,0,0,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,8,Mike O'Donnell,MF,Yes,60,19,9,10,22,10,4,6,11,8,0,1,1,1,0,0,3,1,33.3
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,9,Greg Horan,MF,Yes,60,31,17,14,32,10,4,6,12,17,2,1,2,0,0,0,0,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,10,David Fitzmaurice,HF,Yes,60,22,14,8,26,20,8,12,22,2,0,1,0,0,0,0,0,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,11,Cian Purcell,HF,Yes,60,18,6,12,20,12,6,6,14,3,1,0,0,2,0,0,3,2,66.7
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,12,Gavin Casey,HF,Yes,60,27,17,10,28,19,10,9,20,5,1,0,1,0,0,0,0,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,13,Ryan O'Driscoll,FF,Yes,60,20,8,12,23,13,5,8,15,3,1,2,1,2,0,0,5,2,40.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,14,Shane O'Callaghan,FF,Yes,60,7,2,5,8,6,2,4,6,0,1,1,1,1,0,0,3,1,33.3
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,15,Jordan Kissane,FF,Yes,60,19,9,10,20,13,4,9,15,3,1,2,0,4,0,0,4,4,100.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,16,Eoghan Carroll,SUB,No,25,13,8,5,14,7,2,5,7,5,2,2,1,0,0,0,1,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,17,Fionnan Ryan,SUB,No,22,4,2,2,4,3,2,1,4,1,0,0,1,0,0,0,0,0,0.0
+CL-R7,2026-05-16,Austin Stacks,Home,Draw,Actual,18,Fiachna Mangan,SUB,No,12,4,1,3,4,2,1,1,2,2,0,0,0,0,0,0,0,0,0.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,1,Mike Tansley,GK,Yes,61,2,0,2,2,4,1,3,4,2,0,0,0,0,0,1,2,1,50.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,2,Colin Griffin,FB,Yes,57,12,8,4,12,12,8,4,14,12,3,1,0,1,0,0,2,1,50.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,3,Colm Brown,FB,Yes,54,12,8,4,13,11,5,6,13,5,1,0,0,0,0,0,0,0,0.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,4,Jack Murphy,HB,Yes,50,11,3,8,12,8,3,5,9,3,2,0,1,1,0,0,2,1,50.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,7,Ronan Shanahan,HB,Yes,54,24,9,15,25,19,8,11,20,8,0,0,1,0,0,0,1,0,0.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,6,Luke Casey,HB,Yes,54,11,7,4,11,8,4,4,8,2,0,0,1,0,0,0,0,0,0.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,5,Jack O'Shea,HB,Yes,64,19,6,13,20,14,4,10,16,2,0,0,0,0,0,0,0,0,0.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,8,Mike O'Donnell,MF,Yes,65,18,10,8,19,8,3,5,9,5,0,1,1,1,0,0,3,1,33.3
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,9,Greg Horan,MF,Yes,64,37,20,17,42,9,5,4,9,25,2,1,3,1,0,0,3,1,33.3
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,10,David Fitzmaurice,HF,Yes,51,14,7,7,16,13,8,5,14,1,0,1,0,2,0,0,5,2,40.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,11,Cian Purcell,HF,Yes,65,22,7,15,24,11,7,4,14,4,1,0,0,2,0,0,5,2,40.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,12,Gavin Casey,HF,Yes,57,28,10,18,28,19,7,12,20,3,1,0,1,1,0,0,2,1,50.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,13,Ryan O'Driscoll,FF,Yes,56,18,9,9,19,14,8,6,17,4,1,2,0,1,0,0,2,1,50.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,14,Shane O'Callaghan,FF,Yes,60,7,2,5,8,7,3,4,8,0,1,1,1,1,0,0,4,1,25.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,15,Jordan Kissane,FF,Yes,65,19,8,11,20,13,5,8,14,4,1,2,0,3,0,0,6,3,50.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,16,Eoghan Carroll,SUB,No,19,5,3,2,5,2,0,2,2,2,0,1,0,1,0,0,2,1,50.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,17,Fionnan Ryan,SUB,No,28,2,1,1,2,1,0,1,1,0,0,0,0,1,0,0,2,1,50.0
+CL-R8,2026-05-30,Dingle,Away,Loss,Synthetic,18,Fiachna Mangan,SUB,No,17,1,0,1,1,1,0,1,1,0,0,0,0,0,0,0,0,0,0.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,1,Mike Tansley,GK,Yes,62,4,1,3,4,3,2,1,4,2,0,0,0,0,0,0,1,0,0.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,2,Colin Griffin,FB,Yes,65,18,7,11,20,8,2,6,10,10,2,1,0,1,0,0,2,1,50.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,3,Colm Brown,FB,Yes,56,13,5,8,14,12,7,5,13,5,1,0,0,0,0,0,2,0,0.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,4,Jack Murphy,HB,Yes,57,12,4,8,12,7,4,3,8,3,2,0,1,0,0,0,1,0,0.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,7,Ronan Shanahan,HB,Yes,59,31,19,12,33,20,11,9,23,11,0,0,3,0,0,0,1,0,0.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,6,Luke Casey,HB,Yes,56,17,9,8,17,10,3,7,11,3,0,0,1,0,0,0,1,0,0.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,5,Jack O'Shea,HB,Yes,54,13,5,8,14,16,9,7,18,2,0,0,0,0,0,1,2,1,50.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,8,Mike O'Donnell,MF,Yes,59,21,7,14,25,9,3,6,10,10,0,1,0,1,0,0,2,1,50.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,9,Greg Horan,MF,Yes,55,32,16,16,32,11,6,5,14,22,2,1,3,1,0,0,3,1,33.3
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,10,David Fitzmaurice,HF,Yes,54,21,14,7,24,16,10,6,18,1,0,1,0,1,0,0,2,1,50.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,11,Cian Purcell,HF,Yes,57,15,5,10,16,10,4,6,10,2,1,0,0,3,0,0,6,3,50.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,12,Gavin Casey,HF,No,27,13,6,7,15,10,4,6,12,2,0,0,0,0,0,0,1,0,0.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,13,Ryan O'Driscoll,FF,Yes,60,17,10,7,18,16,10,6,18,4,1,2,1,4,0,0,5,4,80.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,14,Shane O'Callaghan,FF,Yes,62,8,3,5,9,6,3,3,7,0,1,1,1,1,0,0,4,1,25.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,15,Jordan Kissane,FF,Yes,54,16,10,6,19,10,3,7,10,2,0,2,0,3,0,0,5,3,60.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,16,Eoghan Carroll,SUB,No,29,6,2,4,7,3,2,1,4,3,1,1,0,0,0,0,0,0,0.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,17,Fionnan Ryan,SUB,No,20,2,1,1,2,1,0,1,1,0,0,0,0,0,0,0,1,0,0.0
+CL-R9,2026-06-06,Spa,Home,Win,Synthetic,18,Fiachna Mangan,SUB,No,18,1,0,1,1,1,0,1,1,1,0,0,0,0,0,0,1,0,0.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,1,Mike Tansley,GK,Yes,57,3,2,1,3,3,1,2,3,2,0,0,0,1,0,0,2,1,50.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,2,Colin Griffin,FB,Yes,51,12,5,7,14,10,3,7,10,5,2,0,0,0,0,0,0,0,0.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,3,Colm Brown,FB,Yes,61,13,8,5,14,12,6,6,13,5,1,0,0,0,0,1,2,1,50.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,4,Jack Murphy,HB,Yes,63,16,8,8,17,12,4,8,13,3,1,0,1,1,0,0,2,1,50.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,7,Ronan Shanahan,HB,Yes,57,25,16,9,25,22,14,8,22,4,0,0,1,0,0,0,1,0,0.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,6,Luke Casey,HB,Yes,65,20,13,7,20,12,6,6,12,3,0,0,2,0,0,0,0,0,0.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,5,Jack O'Shea,HB,Yes,51,13,8,5,14,15,6,9,18,1,0,0,0,1,0,0,1,1,100.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,8,Mike O'Donnell,MF,Yes,60,18,9,9,21,11,4,7,12,10,0,0,1,0,0,0,2,0,0.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,9,Greg Horan,MF,Yes,62,40,23,17,41,9,6,3,10,19,3,1,1,2,0,0,4,2,50.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,10,David Fitzmaurice,HF,Yes,52,15,7,8,16,14,7,7,15,2,0,1,0,0,0,0,1,0,0.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,11,Cian Purcell,HF,Yes,55,16,7,9,17,11,6,5,11,3,0,0,0,3,0,0,5,3,60.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,12,Gavin Casey,HF,Yes,57,27,13,14,28,14,7,7,17,4,1,0,1,0,0,0,1,0,0.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,13,Ryan O'Driscoll,FF,Yes,57,21,12,9,22,12,7,5,14,3,1,1,0,2,0,0,4,2,50.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,14,Shane O'Callaghan,FF,Yes,54,6,4,2,6,6,2,4,6,0,1,1,1,1,0,0,3,1,33.3
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,15,Jordan Kissane,FF,Yes,61,16,7,9,16,14,9,5,17,3,1,2,0,3,0,0,6,3,50.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,16,Eoghan Carroll,SUB,No,29,6,4,2,7,4,2,2,5,2,1,1,1,0,0,0,0,0,0.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,17,Fionnan Ryan,SUB,No,30,2,0,2,2,1,0,1,1,1,0,0,1,0,0,0,0,0,0.0
+CL-R10,2026-06-13,Gneevguilla,Away,Loss,Synthetic,18,Fiachna Mangan,SUB,No,28,2,0,2,2,1,0,1,1,1,0,0,0,0,0,0,1,0,0.0

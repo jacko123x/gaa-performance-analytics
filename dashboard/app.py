@@ -9,9 +9,9 @@
 import sys
 from pathlib import Path
 
-import streamlit as st
 import pandas as pd
 import plotly.express as px
+import streamlit as st
 
 
 # -----------------------------
@@ -27,11 +27,12 @@ sys.path.append(str(PROJECT_ROOT / "src"))
 # -----------------------------
 # Import project functions
 # -----------------------------
-# load_season_data reads and joins the CSV files.
-# add_metrics calculates our KPIs.
+# load_season_data reads and joins the team-level CSV files.
+# load_player_match_data reads the player-level CSV file.
+# add_metrics calculates the team KPIs.
 
-from load_data import load_season_data
-from metrics import add_metrics
+from load_data import load_player_match_data, load_season_data
+from metrics import add_metrics, add_player_metrics
 
 
 # -----------------------------
@@ -45,9 +46,12 @@ AMBER = "#F59E0B"
 # -----------------------------
 # Streamlit page setup
 # -----------------------------
-# Sets browser tab title and uses wide layout for charts/tables.
+# Sets browser tab title and uses wide layout for charts and tables.
 
-st.set_page_config(page_title="Austin Stacks Analytics", layout="wide")
+st.set_page_config(
+    page_title="Austin Stacks Analytics",
+    layout="wide",
+)
 
 
 # -----------------------------
@@ -62,9 +66,26 @@ st.subheader("County League 2026")
 # Load and prepare data
 # -----------------------------
 # Load match/team data, calculate KPIs, then filter to Austin Stacks only.
+# Player match data is loaded separately for future player analysis.
 
-season = add_metrics(load_season_data())
-stacks = season[season["Team"] == "Austin Stacks"].copy()
+try:
+    season = add_metrics(load_season_data())
+
+    stacks = season[
+        season["Team"] == "Austin Stacks"
+    ].copy()
+
+    player_data = add_player_metrics(
+        load_player_match_data()
+    )
+
+except FileNotFoundError as error:
+    st.error(str(error))
+    st.stop()
+
+except Exception as error:
+    st.error(f"An error occurred while loading the data: {error}")
+    st.stop()
 
 
 # -----------------------------
@@ -78,11 +99,30 @@ avg_turnover = stacks["TurnoverDifferential"].mean()
 
 col1, col2, col3, col4, col5 = st.columns(5)
 
-col1.metric("Matches", stacks["MatchID"].nunique())
-col2.metric("Avg Shot %", f"{stacks['ShotConversion'].mean():.1f}%")
-col3.metric("Avg Kickout Win %", f"{stacks['KickoutWinRate'].mean():.1f}%")
-col4.metric("Avg Turnover Diff", f"{avg_turnover:+.1f}")
-col5.metric("Avg Attack → Shot %", f"{stacks['AttackShotRate'].mean():.1f}%")
+col1.metric(
+    "Matches",
+    stacks["MatchID"].nunique(),
+)
+
+col2.metric(
+    "Avg Shot %",
+    f"{stacks['ShotConversion'].mean():.1f}%",
+)
+
+col3.metric(
+    "Avg Kickout Win %",
+    f"{stacks['KickoutWinRate'].mean():.1f}%",
+)
+
+col4.metric(
+    "Avg Turnover Diff",
+    f"{avg_turnover:+.1f}",
+)
+
+col5.metric(
+    "Avg Attack → Shot %",
+    f"{stacks['AttackShotRate'].mean():.1f}%",
+)
 
 
 # -----------------------------
@@ -103,13 +143,20 @@ fig1 = px.line(
     color_discrete_sequence=[AMBER],
 )
 
-fig1.update_traces(line=dict(width=4), marker=dict(size=10))
+fig1.update_traces(
+    line=dict(width=4),
+    marker=dict(size=10),
+)
+
 fig1.update_layout(
     xaxis_title="Opponent",
     yaxis_title="Shot Conversion %",
 )
 
-st.plotly_chart(fig1, width="stretch")
+st.plotly_chart(
+    fig1,
+    width="stretch",
+)
 
 
 # Kickout win rate chart
@@ -122,13 +169,20 @@ fig2 = px.line(
     color_discrete_sequence=[AMBER],
 )
 
-fig2.update_traces(line=dict(width=4), marker=dict(size=10))
+fig2.update_traces(
+    line=dict(width=4),
+    marker=dict(size=10),
+)
+
 fig2.update_layout(
     xaxis_title="Opponent",
     yaxis_title="Kickout Win Rate %",
 )
 
-st.plotly_chart(fig2, width="stretch")
+st.plotly_chart(
+    fig2,
+    width="stretch",
+)
 
 
 # Turnover differential chart
@@ -145,11 +199,15 @@ fig3.update_layout(
     yaxis_title="Turnover Differential",
 )
 
-st.plotly_chart(fig3, width="stretch")
+st.plotly_chart(
+    fig3,
+    width="stretch",
+)
 
 
-# Attack to shot rate chart
+# Attack-to-shot rate chart
 # This shows what percentage of attacks resulted in a shot.
+
 fig4 = px.line(
     stacks,
     x="Opponent",
@@ -159,20 +217,27 @@ fig4 = px.line(
     color_discrete_sequence=[AMBER],
 )
 
-fig4.update_traces(line=dict(width=4), marker=dict(size=10))
+fig4.update_traces(
+    line=dict(width=4),
+    marker=dict(size=10),
+)
+
 fig4.update_layout(
     xaxis_title="Opponent",
     yaxis_title="Attack → Shot Rate %",
 )
 
-st.plotly_chart(fig4, width="stretch")
+st.plotly_chart(
+    fig4,
+    width="stretch",
+)
 
 
 # -----------------------------
 # Match data table
 # -----------------------------
 # This displays the main Austin Stacks match stats.
-# We format percentages and +/- values so the table is easier to read.
+# Percentages and +/- values are formatted for readability.
 
 st.header("Austin Stacks Match Data")
 
@@ -195,38 +260,131 @@ display_df = stacks[display_cols].copy()
 
 
 # Format shot conversion as percentage
-display_df["ShotConversion"] = display_df["ShotConversion"].map(
-    lambda x: "" if pd.isna(x) else f"{x:.2f}%"
+display_df["ShotConversion"] = display_df[
+    "ShotConversion"
+].map(
+    lambda value: (
+        ""
+        if pd.isna(value)
+        else f"{value:.2f}%"
+    )
 )
 
 
 # Format kickout win rate as percentage
-display_df["KickoutWinRate"] = display_df["KickoutWinRate"].map(
-    lambda x: "" if pd.isna(x) else f"{x:.2f}%"
+display_df["KickoutWinRate"] = display_df[
+    "KickoutWinRate"
+].map(
+    lambda value: (
+        ""
+        if pd.isna(value)
+        else f"{value:.2f}%"
+    )
 )
 
 
 # Format turnover differential with + or - sign
-display_df["TurnoverDifferential"] = display_df["TurnoverDifferential"].map(
-    lambda x: "" if pd.isna(x) else f"{x:+.0f}"
+display_df["TurnoverDifferential"] = display_df[
+    "TurnoverDifferential"
+].map(
+    lambda value: (
+        ""
+        if pd.isna(value)
+        else f"{value:+.0f}"
+    )
 )
 
 
 # Format scores per attack as decimal
-display_df["ScoresPerAttack"] = display_df["ScoresPerAttack"].map(
-    lambda x: "" if pd.isna(x) else f"{x:.3f}"
+display_df["ScoresPerAttack"] = display_df[
+    "ScoresPerAttack"
+].map(
+    lambda value: (
+        ""
+        if pd.isna(value)
+        else f"{value:.3f}"
+    )
 )
 
 
-# Format attack to shot rate as percentage
-display_df["AttackShotRate"] = display_df["AttackShotRate"].map(
-    lambda x: "" if pd.isna(x) else f"{x:.2f}%"
+# Format attack-to-shot rate as percentage
+display_df["AttackShotRate"] = display_df[
+    "AttackShotRate"
+].map(
+    lambda value: (
+        ""
+        if pd.isna(value)
+        else f"{value:.2f}%"
+    )
 )
 
 
 # Render table without the dataframe index column
 st.dataframe(
     display_df,
+    width="stretch",
+    hide_index=True,
+)
+
+
+# -----------------------------
+# Player data loading check
+# -----------------------------
+# This confirms that the player CSV has loaded successfully.
+# It can later be replaced by a full Player Analytics section.
+
+st.header("Player Data Check")
+
+player_col1, player_col2, player_col3 = st.columns(3)
+
+player_col1.metric(
+    "Player Records",
+    len(player_data),
+)
+
+player_col2.metric(
+    "Players",
+    player_data["PlayerName"].nunique(),
+)
+
+player_col3.metric(
+    "Player Matches",
+    player_data["MatchID"].nunique(),
+)
+
+
+# -----------------------------
+# Player data preview
+# -----------------------------
+# Show the most useful columns from the first 10 player-match records.
+
+player_preview_cols = [
+    "MatchID",
+    "Date",
+    "Opponent",
+    "PlayerName",
+    "Position",
+    "Started",
+    "MinutesPlayed",
+    "HandpassesTotal",
+    "FootpassesTotal",
+    "IncompletePasses",
+    "Assists",
+    "Points",
+    "Goals",
+    "TwoPointers",
+    "ShotConversionPct",
+    "DataType",
+]
+
+available_player_preview_cols = [
+    column
+    for column in player_preview_cols
+    if column in player_data.columns
+]
+
+st.dataframe(
+    player_data[available_player_preview_cols].head(10),
     width="stretch",
     hide_index=True,
 )
