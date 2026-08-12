@@ -1,0 +1,7 @@
+MatchID,Team,Period,KickoutType,Taken,Won,Lost,CleanWins,BreakWins,FreeWins,SidelineWins
+club1,Austin Stacks,FT,Own,17,12,5,8,4,0,0
+club1,Austin Stacks,FT,Opponent,21,7,14,2,5,0,0
+club1,Austin Stacks,1H,Own,8,6,2,4,2,0,0
+club1,Austin Stacks,2H,Own,9,6,3,4,2,0,0
+club1,Austin Stacks,1H,Opponent,10,4,6,1,3,0,0
+club1,Austin Stacks,2H,Opponent,11,3,8,1,2,0,0
