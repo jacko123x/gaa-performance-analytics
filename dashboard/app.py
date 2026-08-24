@@ -1209,9 +1209,18 @@ with turnover_tab:
         )
 
         col3.metric(
-            "Differential",
+            (
+                "Avg Differential"
+                if show_averages
+                else "Differential"
+            ),
             format_signed(
-                row["TurnoverDifferential"]
+                row["TurnoverDifferential"],
+                decimals=(
+                    1
+                    if show_averages
+                    else 0
+                ),
             ),
         )
 
