@@ -16,6 +16,7 @@ import streamlit as st
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.append(str(PROJECT_ROOT / "src"))
+sys.path.append(str(PROJECT_ROOT / "dashboard"))
 
 
 # ==========================================================
@@ -23,6 +24,8 @@ sys.path.append(str(PROJECT_ROOT / "src"))
 # ==========================================================
 
 from load_data import (
+    DATASETS,
+    DATA_DIR,
     load_matches,
     load_match_summary,
     load_shooting_detail,
@@ -39,6 +42,15 @@ from metrics import (
     add_turnover_metrics,
     add_player_metrics,
 )
+
+from championship_overview import (
+    render_championship_overview,
+)
+from match_comparison import render_match_comparison
+from player_championship import render_player_championship
+from squad_leaderboards import render_squad_leaderboards
+from data_quality import render_data_quality
+from auth import require_login, render_account_controls
 
 
 # ==========================================================
@@ -63,6 +75,11 @@ st.set_page_config(
     page_icon="🏐",
     layout="wide",
 )
+
+if not require_login():
+    st.stop()
+
+render_account_controls()
 
 
 # ==========================================================
@@ -178,8 +195,30 @@ def aggregate_player_matches(players):
 # Load data
 # ==========================================================
 
-@st.cache_data
-def load_dashboard_data():
+def dashboard_data_version():
+    dataset_keys = [
+        "matches",
+        "team_stats",
+        "shooting",
+        "scoring_sources",
+        "kickouts",
+        "turnovers",
+        "player_data",
+    ]
+
+    return tuple(
+        (
+            DATASETS[key],
+            (DATA_DIR / DATASETS[key]).stat().st_mtime_ns,
+        )
+        for key in dataset_keys
+    )
+
+
+@st.cache_data(max_entries=3)
+def load_dashboard_data(data_version):
+    # The version is part of the cache key, so updated CSVs reload.
+    _ = data_version
 
     matches = load_matches()
 
@@ -226,7 +265,9 @@ try:
         kickout_data,
         turnover_data,
         player_data,
-    ) = load_dashboard_data()
+    ) = load_dashboard_data(
+        dashboard_data_version()
+    )
 
 except Exception as error:
 
@@ -271,6 +312,69 @@ st.title("Austin Stacks Performance Platform")
 st.caption(
     "Club Championship 2026"
 )
+
+
+# ==========================================================
+# Analysis view
+# ==========================================================
+
+analysis_view = st.sidebar.selectbox(
+    "Analysis view",
+    options=[
+        "Championship overview",
+        "Match analysis",
+        "Player championship",
+        "Squad leaderboards",
+        "Match comparison",
+        "Data quality",
+    ],
+)
+
+if analysis_view == "Championship overview":
+    render_championship_overview(
+        matches=matches,
+        team_data=team_data,
+        shooting_data=shooting_data,
+        scoring_sources=scoring_sources,
+        kickout_data=kickout_data,
+        turnover_data=turnover_data,
+        team_name=TEAM_NAME,
+    )
+    st.stop()
+
+if analysis_view == "Player championship":
+    render_player_championship(player_data)
+    st.stop()
+
+if analysis_view == "Squad leaderboards":
+    render_squad_leaderboards(player_data)
+    st.stop()
+
+if analysis_view == "Match comparison":
+    render_match_comparison(
+        matches=matches,
+        team_data=team_data,
+        scoring_sources=scoring_sources,
+        kickout_data=kickout_data,
+        turnover_data=turnover_data,
+        team_name=TEAM_NAME,
+    )
+    st.stop()
+
+if analysis_view == "Data quality":
+    render_data_quality(
+        matches=matches,
+        team_data=team_data,
+        shooting_data=shooting_data,
+        scoring_sources=scoring_sources,
+        kickout_data=kickout_data,
+        turnover_data=turnover_data,
+        player_data=player_data,
+        team_name=TEAM_NAME,
+    )
+    st.stop()
+
+st.header("Match analysis")
 
 
 # ==========================================================
