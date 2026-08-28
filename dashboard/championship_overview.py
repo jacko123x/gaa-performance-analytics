@@ -1,3 +1,5 @@
+from html import escape
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
@@ -8,9 +10,110 @@ DARK_AMBER = "#B45309"
 DARK = "#1F2937"
 GREY = "#6B7280"
 
+KPI_PALETTE = {
+    "strong": {
+        "accent": "#22C55E",
+        "background": "rgba(34, 197, 94, 0.14)",
+        "badge": "rgba(34, 197, 94, 0.24)",
+        "label": "Strong",
+    },
+    "middle": {
+        "accent": "#F59E0B",
+        "background": "rgba(245, 158, 11, 0.14)",
+        "badge": "rgba(245, 158, 11, 0.24)",
+        "label": "Middle",
+    },
+    "review": {
+        "accent": "#EF4444",
+        "background": "rgba(239, 68, 68, 0.14)",
+        "badge": "rgba(239, 68, 68, 0.24)",
+        "label": "Review",
+    },
+    "neutral": {
+        "accent": "#3B82F6",
+        "background": "rgba(59, 130, 246, 0.12)",
+        "badge": "rgba(59, 130, 246, 0.22)",
+        "label": "Context",
+    },
+}
+
 
 def _format_signed(value, decimals=0):
     return f"{value:+.{decimals}f}"
+
+
+def _performance_band(
+    value,
+    strong_threshold,
+    middle_threshold,
+    higher_is_better=True,
+):
+    if pd.isna(value):
+        return "neutral"
+    if higher_is_better:
+        if value >= strong_threshold:
+            return "strong"
+        if value >= middle_threshold:
+            return "middle"
+    else:
+        if value <= strong_threshold:
+            return "strong"
+        if value <= middle_threshold:
+            return "middle"
+    return "review"
+
+
+def _metric_card(label, value, band, note=None):
+    palette = KPI_PALETTE[band]
+    note_html = (
+        f'<div style="font-size:0.75rem;opacity:0.68;margin-top:0.35rem;">'
+        f"{escape(note)}</div>"
+        if note
+        else ""
+    )
+    st.markdown(
+        f"""
+<div style="
+    min-height:132px;
+    padding:1rem 1.05rem;
+    border:1px solid {palette['accent']}66;
+    border-left:5px solid {palette['accent']};
+    border-radius:0.75rem;
+    background:{palette['background']};
+    box-shadow:0 5px 18px rgba(0, 0, 0, 0.10);
+">
+    <div style="font-size:0.82rem;font-weight:650;opacity:0.78;">
+        {escape(label)}
+    </div>
+    <div style="font-size:1.8rem;font-weight:750;line-height:1.2;margin-top:0.3rem;">
+        {escape(str(value))}
+    </div>
+    <span style="
+        display:inline-block;
+        margin-top:0.55rem;
+        padding:0.14rem 0.48rem;
+        border-radius:999px;
+        background:{palette['badge']};
+        color:{palette['accent']};
+        font-size:0.68rem;
+        font-weight:750;
+        letter-spacing:0.04em;
+        text-transform:uppercase;
+    ">{palette['label']}</span>
+    {note_html}
+</div>
+""",
+        unsafe_allow_html=True,
+    )
+
+
+def _render_metric_grid(cards, columns_per_row=4):
+    for start in range(0, len(cards), columns_per_row):
+        row_cards = cards[start:start + columns_per_row]
+        columns = st.columns(len(row_cards))
+        for column, card in zip(columns, row_cards):
+            with column:
+                _metric_card(**card)
 
 
 def _build_match_trends(matches, team_data, team_name):
@@ -198,86 +301,142 @@ def _render_record(
         turnover_data["Period"] == "FT",
         "TurnoverDifferential",
     ].mean()
+    average_attacks = match_trends["Attacks"].mean()
+    shot_conversion = match_trends["ShotConversionPct"].mean()
+    attack_to_shot = match_trends["AttackToShotPct"].mean()
+    attack_to_score = match_trends["AttackToScorePct"].mean()
+    average_frees_conceded = match_trends["FreesConceded"].mean()
+    points_per_game = (
+        (wins * 3) + draws
+    ) / len(match_trends)
+    result_band = _performance_band(points_per_game, 2.0, 1.0)
+    scoring_band = _performance_band(
+        average_score_differential,
+        3.0,
+        0.0,
+    )
 
-    with st.container(horizontal=True):
-        st.metric(
-            "Games played",
-            len(match_trends),
-            border=True,
-        )
-        st.metric(
-            "W / D / L",
-            f"{wins} / {draws} / {losses}",
-            help="Wins–draws–losses",
-            border=True,
-        )
-        st.metric(
-            "Avg score for",
-            f"{average_scores_for:.1f}",
-            border=True,
-        )
-        st.metric(
-            "Avg score against",
-            f"{average_scores_against:.1f}",
-            border=True,
-        )
-        st.metric(
-            "Avg scoring differential",
-            _format_signed(
-                average_score_differential,
-                decimals=1,
-            ),
-            border=True,
-        )
+    st.subheader("Championship pulse")
+    _render_metric_grid(
+        [
+            {
+                "label": "Games played",
+                "value": len(match_trends),
+                "band": "neutral",
+                "note": "Championship sample",
+            },
+            {
+                "label": "W / D / L",
+                "value": f"{wins} / {draws} / {losses}",
+                "band": result_band,
+                "note": f"{points_per_game:.1f} points per game",
+            },
+            {
+                "label": "Avg score for",
+                "value": f"{average_scores_for:.1f}",
+                "band": scoring_band,
+                "note": "Compared with score against",
+            },
+            {
+                "label": "Avg score against",
+                "value": f"{average_scores_against:.1f}",
+                "band": scoring_band,
+                "note": "Lower than score for is positive",
+            },
+            {
+                "label": "Avg scoring differential",
+                "value": _format_signed(
+                    average_score_differential,
+                    decimals=1,
+                ),
+                "band": scoring_band,
+                "note": "For minus against",
+            },
+        ],
+        columns_per_row=3,
+    )
 
-    with st.container(horizontal=True):
-        st.metric(
-            "Avg attacks",
-            f"{match_trends['Attacks'].mean():.1f}",
-            border=True,
-        )
-        st.metric(
-            "Shot conversion",
-            f"{match_trends['ShotConversionPct'].mean():.1f}%",
-            border=True,
-        )
-        st.metric(
-            "Attack → shot",
-            f"{match_trends['AttackToShotPct'].mean():.1f}%",
-            border=True,
-        )
-        st.metric(
-            "Attack → score",
-            f"{match_trends['AttackToScorePct'].mean():.1f}%",
-            border=True,
-        )
-        st.metric(
-            "Own KO retention",
-            f"{own_retention:.1f}%",
-            border=True,
-        )
-        st.metric(
-            "Opposition KOs won",
-            f"{opposition_kickouts_won:.1f}%",
-            border=True,
-        )
-        st.metric(
-            "Avg turnover differential",
-            _format_signed(
-                average_turnover_differential,
-                decimals=1,
-            ),
-            border=True,
-        )
-        st.metric(
-            "Avg frees conceded",
-            f"{match_trends['FreesConceded'].mean():.1f}",
-            border=True,
-        )
+    st.subheader("Performance pulse")
+    _render_metric_grid(
+        [
+            {
+                "label": "Avg attacks",
+                "value": f"{average_attacks:.1f}",
+                "band": _performance_band(average_attacks, 30, 25),
+                "note": "Volume benchmark",
+            },
+            {
+                "label": "Shot conversion",
+                "value": f"{shot_conversion:.1f}%",
+                "band": _performance_band(shot_conversion, 65, 50),
+            },
+            {
+                "label": "Attack → shot",
+                "value": f"{attack_to_shot:.1f}%",
+                "band": _performance_band(attack_to_shot, 75, 65),
+            },
+            {
+                "label": "Attack → score",
+                "value": f"{attack_to_score:.1f}%",
+                "band": _performance_band(attack_to_score, 50, 40),
+            },
+            {
+                "label": "Own KO retention",
+                "value": f"{own_retention:.1f}%",
+                "band": _performance_band(own_retention, 70, 60),
+            },
+            {
+                "label": "Opposition KOs won",
+                "value": f"{opposition_kickouts_won:.1f}%",
+                "band": _performance_band(
+                    opposition_kickouts_won,
+                    35,
+                    25,
+                ),
+            },
+            {
+                "label": "Avg turnover differential",
+                "value": _format_signed(
+                    average_turnover_differential,
+                    decimals=1,
+                ),
+                "band": _performance_band(
+                    average_turnover_differential,
+                    1,
+                    0,
+                ),
+            },
+            {
+                "label": "Avg frees conceded",
+                "value": f"{average_frees_conceded:.1f}",
+                "band": _performance_band(
+                    average_frees_conceded,
+                    5,
+                    8,
+                    higher_is_better=False,
+                ),
+                "note": "Lower is better",
+            },
+        ]
+    )
 
     st.caption(
-        "Rates are arithmetic averages of the selected match-level rates."
+        "Green = strong, amber = middle band, red = review. "
+        "Rates are arithmetic averages of match-level rates."
     )
+    with st.expander("Performance colour benchmarks"):
+        st.markdown(
+            """
+- **Shot conversion:** strong ≥ 65%, middle ≥ 50%.
+- **Attack → shot:** strong ≥ 75%, middle ≥ 65%.
+- **Attack → score:** strong ≥ 50%, middle ≥ 40%.
+- **Own kickout retention:** strong ≥ 70%, middle ≥ 60%.
+- **Opposition kickouts won:** strong ≥ 35%, middle ≥ 25%.
+- **Turnover differential:** strong ≥ +1, middle ≥ 0.
+- **Frees conceded:** strong ≤ 5, middle ≤ 8.
+- **Attacks:** strong ≥ 30, middle ≥ 25 per match.
+"""
+        )
 
 
 def _render_attack_trends(match_trends):

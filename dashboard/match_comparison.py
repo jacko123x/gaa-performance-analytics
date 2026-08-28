@@ -125,12 +125,27 @@ def _format_value(value, kind):
     return str(int(value))
 
 
-def _format_delta(value, kind):
+def _format_change(value, kind):
     if kind == "percentage":
-        return f"{value:+.1f} pp vs A"
+        return f"{value:+.1f} pp"
     if kind == "decimal":
-        return f"{value:+.1f} vs A"
-    return f"{value:+.0f} vs A"
+        return f"{value:+.1f}"
+    return f"{value:+.0f}"
+
+
+def _format_delta(value, kind, baseline_label):
+    return f"{_format_change(value, kind)} vs {baseline_label}"
+
+
+def _comparison_labels(match_a, match_b):
+    baseline_label = str(match_a["OpponentLabel"])
+    comparison_label = str(match_b["OpponentLabel"])
+
+    if baseline_label == comparison_label:
+        baseline_label = f"{baseline_label} ({match_a['MatchID']})"
+        comparison_label = f"{comparison_label} ({match_b['MatchID']})"
+
+    return baseline_label, comparison_label
 
 
 def _render_match_summary(label, row):
@@ -145,7 +160,12 @@ def _render_match_summary(label, row):
         )
 
 
-def _render_change_metrics(match_a, match_b):
+def _render_change_metrics(
+    match_a,
+    match_b,
+    baseline_label,
+    comparison_label,
+):
     metric_definitions = [
         (
             "Attacks",
@@ -207,14 +227,23 @@ def _render_change_metrics(match_a, match_b):
                 delta=_format_delta(
                     value_b - value_a,
                     kind,
+                    baseline_label,
                 ),
                 delta_color=delta_color,
                 border=True,
-                help="Match B value; change is relative to Match A",
+                help=(
+                    f"{comparison_label} value; change is relative to "
+                    f"{baseline_label}"
+                ),
             )
 
 
-def _render_comparison_table(match_a, match_b):
+def _render_comparison_table(
+    match_a,
+    match_b,
+    baseline_label,
+    comparison_label,
+):
     rows = [
         ("Attacks", "Attacks", "count"),
         ("Shots", "TotalShots", "count"),
@@ -249,12 +278,12 @@ def _render_comparison_table(match_a, match_b):
         comparison_rows.append(
             {
                 "Metric": label,
-                "Match A": _format_value(value_a, kind),
-                "Match B": _format_value(value_b, kind),
-                "Change": _format_delta(
+                baseline_label: _format_value(value_a, kind),
+                comparison_label: _format_value(value_b, kind),
+                f"Change vs {baseline_label}": _format_change(
                     value_b - value_a,
                     kind,
-                ).replace(" vs A", ""),
+                ),
             }
         )
 
@@ -328,6 +357,8 @@ def _render_scoring_source_changes(
     scoring_sources,
     match_a,
     match_b,
+    baseline_label,
+    comparison_label,
 ):
     st.header("Scoring-source changes")
 
@@ -337,8 +368,8 @@ def _render_scoring_source_changes(
         match_b["MatchID"],
     )
     match_names = {
-        match_a["MatchID"]: "Match A",
-        match_b["MatchID"]: "Match B",
+        match_a["MatchID"]: baseline_label,
+        match_b["MatchID"]: comparison_label,
     }
     data["Match"] = data["MatchID"].map(
         match_names
@@ -353,11 +384,14 @@ def _render_scoring_source_changes(
             y="Scores",
             color="Match",
             barmode="group",
-            title="Scoring origin: Match A vs Match B",
+            title=(
+                f"Scoring origin: {baseline_label} vs "
+                f"{comparison_label}"
+            ),
             text_auto=".0f",
             color_discrete_map={
-                "Match A": DARK,
-                "Match B": AMBER,
+                baseline_label: DARK,
+                comparison_label: AMBER,
             },
         )
         figure.update_layout(
@@ -373,8 +407,9 @@ def _render_scoring_source_changes(
         columns="Match",
         values="Scores",
     ).reset_index()
-    pivot["Change"] = (
-        pivot["Match B"] - pivot["Match A"]
+    change_column = f"Change vs {baseline_label}"
+    pivot[change_column] = (
+        pivot[comparison_label] - pivot[baseline_label]
     )
 
     with table_column.container(border=True):
@@ -387,13 +422,13 @@ def _render_scoring_source_changes(
                 "Source": st.column_config.TextColumn(
                     pinned=True,
                 ),
-                "Match A": st.column_config.NumberColumn(
+                baseline_label: st.column_config.NumberColumn(
                     format="%.0f",
                 ),
-                "Match B": st.column_config.NumberColumn(
+                comparison_label: st.column_config.NumberColumn(
                     format="%.0f",
                 ),
-                "Change": st.column_config.NumberColumn(
+                change_column: st.column_config.NumberColumn(
                     format="%+.0f",
                 ),
             },
@@ -410,7 +445,7 @@ def render_match_comparison(
 ):
     st.header("Match comparison")
     st.caption(
-        "Compare Match B with Match A to see what changed"
+        "Compare one opponent performance with another to see what changed"
     )
 
     comparison = _build_comparison_data(
@@ -435,14 +470,14 @@ def render_match_comparison(
     selector_a, selector_b = st.columns(2)
     with selector_a:
         match_a_label = st.selectbox(
-            "Match A",
+            "Baseline match",
             options=label_options,
             index=0,
             key="comparison_match_a",
         )
     with selector_b:
         match_b_label = st.selectbox(
-            "Match B",
+            "Comparison match",
             options=label_options,
             index=len(label_options) - 1,
             key="comparison_match_b",
@@ -463,24 +498,41 @@ def render_match_comparison(
     match_b = comparison.loc[
         comparison["MatchID"] == match_b_id
     ].iloc[0]
+    baseline_label, comparison_label = _comparison_labels(
+        match_a,
+        match_b,
+    )
 
     summary_a, summary_b = st.columns(2)
     with summary_a:
-        _render_match_summary("Match A", match_a)
+        _render_match_summary(baseline_label, match_a)
     with summary_b:
-        _render_match_summary("Match B", match_b)
+        _render_match_summary(comparison_label, match_b)
 
     st.header("Performance changes")
     st.caption(
-        "Each card shows Match B; the arrow and delta are relative to Match A."
+        f"Each card shows {comparison_label}; the arrow and delta are "
+        f"relative to {baseline_label}."
     )
-    _render_change_metrics(match_a, match_b)
+    _render_change_metrics(
+        match_a,
+        match_b,
+        baseline_label,
+        comparison_label,
+    )
 
     st.subheader("Detailed comparison")
-    _render_comparison_table(match_a, match_b)
+    _render_comparison_table(
+        match_a,
+        match_b,
+        baseline_label,
+        comparison_label,
+    )
 
     _render_scoring_source_changes(
         scoring_sources,
         match_a,
         match_b,
+        baseline_label,
+        comparison_label,
     )
