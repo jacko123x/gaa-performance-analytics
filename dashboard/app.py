@@ -50,7 +50,13 @@ from match_comparison import render_match_comparison
 from player_championship import render_player_championship
 from squad_leaderboards import render_squad_leaderboards
 from data_quality import render_data_quality
-from auth import require_login, render_account_controls
+from auth import (
+    available_views,
+    current_user,
+    require_login,
+    render_account_controls,
+)
+from admin import render_admin
 
 
 # ==========================================================
@@ -80,6 +86,7 @@ if not require_login():
     st.stop()
 
 render_account_controls()
+SIGNED_IN_USER = current_user()
 
 
 # ==========================================================
@@ -320,14 +327,7 @@ st.caption(
 
 analysis_view = st.sidebar.selectbox(
     "Analysis view",
-    options=[
-        "Championship overview",
-        "Match analysis",
-        "Player championship",
-        "Squad leaderboards",
-        "Match comparison",
-        "Data quality",
-    ],
+    options=available_views(SIGNED_IN_USER["role"]),
 )
 
 if analysis_view == "Championship overview":
@@ -344,6 +344,14 @@ if analysis_view == "Championship overview":
 
 if analysis_view == "Player championship":
     render_player_championship(player_data)
+    st.stop()
+
+if analysis_view == "My player profile":
+    render_player_championship(
+        player_data,
+        fixed_player=SIGNED_IN_USER["player_name"],
+        show_squad_table=False,
+    )
     st.stop()
 
 if analysis_view == "Squad leaderboards":
@@ -369,6 +377,14 @@ if analysis_view == "Data quality":
         scoring_sources=scoring_sources,
         kickout_data=kickout_data,
         turnover_data=turnover_data,
+        player_data=player_data,
+        team_name=TEAM_NAME,
+    )
+    st.stop()
+
+if analysis_view == "Admin":
+    render_admin(
+        matches=matches,
         player_data=player_data,
         team_name=TEAM_NAME,
     )

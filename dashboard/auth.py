@@ -1,22 +1,70 @@
 import hmac
+from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
 
-# Demo-only credentials. This is an access gate for trying the login flow,
-# not a secure replacement for managed authentication.
-DEMO_USERNAME = "coach"
+# Demo-only shared password. The user registry provides roles and player links.
 DEMO_PASSWORD = "stacks2026"
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+USERS_FILE = PROJECT_ROOT / "data" / "app_users.csv"
+VALID_ROLES = ["Admin", "Coach", "Player", "Viewer"]
+
+
+def load_users():
+    users = pd.read_csv(USERS_FILE, dtype=str).fillna("")
+    users["Username"] = users["Username"].str.strip().str.lower()
+    users["DisplayName"] = users["DisplayName"].str.strip()
+    users["Role"] = users["Role"].str.strip()
+    users["PlayerName"] = users["PlayerName"].str.strip()
+    users["Active"] = (
+        users["Active"].astype(str).str.strip().str.lower()
+        .isin(["true", "yes", "1"])
+    )
+    return users
+
+
+def validate_users(users):
+    errors = []
+    usernames = users["Username"].fillna("").astype(str).str.strip().str.lower()
+    if usernames.eq("").any():
+        errors.append("Every user needs a username.")
+    if usernames.duplicated().any():
+        errors.append("Usernames must be unique.")
+    invalid_roles = sorted(set(users["Role"]) - set(VALID_ROLES))
+    if invalid_roles:
+        errors.append(f"Invalid roles: {', '.join(invalid_roles)}.")
+    active_admins = users[
+        users["Active"].astype(bool) & users["Role"].eq("Admin")
+    ]
+    if active_admins.empty:
+        errors.append("At least one active Admin account is required.")
+    players_without_profiles = users[
+        users["Active"].astype(bool)
+        & users["Role"].eq("Player")
+        & users["PlayerName"].fillna("").astype(str).str.strip().eq("")
+    ]
+    if not players_without_profiles.empty:
+        errors.append("Every active Player account needs a linked player.")
+    return errors
+
+
+def _find_user(username):
+    username = username.strip().lower()
+    users = load_users()
+    matching = users[
+        users["Username"].eq(username) & users["Active"]
+    ]
+    if len(matching) != 1:
+        return None
+    return matching.iloc[0]
 
 
 def _credentials_match(username, password):
-    return hmac.compare_digest(
-        username.strip(),
-        DEMO_USERNAME,
-    ) and hmac.compare_digest(
-        password,
-        DEMO_PASSWORD,
-    )
+    user = _find_user(username)
+    password_matches = hmac.compare_digest(password, DEMO_PASSWORD)
+    return user if user is not None and password_matches else None
 
 
 def require_login():
@@ -24,6 +72,9 @@ def require_login():
 
     st.session_state.setdefault("authenticated", False)
     st.session_state.setdefault("authenticated_user", None)
+    st.session_state.setdefault("authenticated_display_name", None)
+    st.session_state.setdefault("authenticated_role", None)
+    st.session_state.setdefault("authenticated_player", None)
 
     if st.session_state["authenticated"]:
         return True
@@ -32,10 +83,7 @@ def require_login():
         "Austin Stacks Performance Platform",
         text_alignment="center",
     )
-    st.caption(
-        "Club Championship 2026",
-        text_alignment="center",
-    )
+    st.caption("Club Championship 2026", text_alignment="center")
     st.space("medium")
 
     _, login_column, _ = st.columns([1, 1.25, 1])
@@ -45,15 +93,11 @@ def require_login():
             text_alignment="center",
         )
         st.caption(
-            "Sign in to view team and player performance data.",
+            "Sign in to access the views available to your role.",
             text_alignment="center",
         )
-
         with st.form("dashboard_login", clear_on_submit=True):
-            username = st.text_input(
-                "Username",
-                autocomplete="username",
-            )
+            username = st.text_input("Username", autocomplete="username")
             password = st.text_input(
                 "Password",
                 type="password",
@@ -67,13 +111,21 @@ def require_login():
             )
 
         if submitted:
-            if _credentials_match(username, password):
+            user = _credentials_match(username, password)
+            if user is not None:
                 st.session_state["authenticated"] = True
-                st.session_state["authenticated_user"] = username.strip()
+                st.session_state["authenticated_user"] = user["Username"]
+                st.session_state["authenticated_display_name"] = (
+                    user["DisplayName"] or user["Username"]
+                )
+                st.session_state["authenticated_role"] = user["Role"]
+                st.session_state["authenticated_player"] = (
+                    user["PlayerName"] or None
+                )
                 st.rerun()
             else:
                 st.error(
-                    "The username or password is incorrect.",
+                    "The username or password is incorrect, or the account is inactive.",
                     icon=":material/error:",
                 )
 
@@ -81,22 +133,58 @@ def require_login():
             "Demo access only · Session resets when the browser session ends",
             text_alignment="center",
         )
-
     return False
 
 
-def render_account_controls():
-    """Show the current demo user and allow the session to be locked."""
+def current_user():
+    return {
+        "username": st.session_state["authenticated_user"],
+        "display_name": st.session_state["authenticated_display_name"],
+        "role": st.session_state["authenticated_role"],
+        "player_name": st.session_state["authenticated_player"],
+    }
 
+
+def available_views(role):
+    analytics = [
+        "Championship overview",
+        "Match analysis",
+        "Player championship",
+        "Squad leaderboards",
+        "Match comparison",
+        "Data quality",
+    ]
+    if role == "Admin":
+        return [*analytics, "Admin"]
+    if role in ["Coach", "Viewer"]:
+        return analytics
+    if role == "Player":
+        return [
+            "Championship overview",
+            "My player profile",
+            "Match comparison",
+        ]
+    return []
+
+
+def render_account_controls():
+    """Show the current user, role and logout control."""
+
+    user = current_user()
     with st.sidebar:
-        st.caption(
-            f"Signed in as **{st.session_state['authenticated_user']}**"
-        )
+        st.caption(f"Signed in as **{user['display_name']}**")
+        st.badge(user["role"], icon=":material/badge:", color="blue")
         if st.button(
             "Log out",
             icon=":material/logout:",
             width="stretch",
         ):
-            st.session_state["authenticated"] = False
-            st.session_state["authenticated_user"] = None
+            for key in [
+                "authenticated",
+                "authenticated_user",
+                "authenticated_display_name",
+                "authenticated_role",
+                "authenticated_player",
+            ]:
+                st.session_state.pop(key, None)
             st.rerun()

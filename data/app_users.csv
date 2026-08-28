@@ -1,0 +1,5 @@
+Username,DisplayName,Role,PlayerName,Active
+admin,Dashboard Admin,Admin,,True
+coach,Coaching Staff,Coach,,True
+player,Jack O'Shea,Player,Jack O'Shea,True
+viewer,Read-only Viewer,Viewer,,True

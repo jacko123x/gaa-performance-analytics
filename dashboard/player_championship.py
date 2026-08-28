@@ -446,8 +446,16 @@ def _render_squad_table(summary):
     )
 
 
-def render_player_championship(player_data):
-    st.header("Player championship dashboard")
+def render_player_championship(
+    player_data,
+    fixed_player=None,
+    show_squad_table=True,
+):
+    st.header(
+        "My championship profile"
+        if fixed_player
+        else "Player championship dashboard"
+    )
     st.caption(
         "Player totals, efficiency and match-by-match performance "
         "across the championship"
@@ -474,13 +482,22 @@ def render_player_championship(player_data):
         )
 
     player_options = sorted(summary["PlayerName"].tolist())
-    default_player = summary.iloc[0]["PlayerName"]
-    selected_player = st.selectbox(
-        "Select player",
-        options=player_options,
-        index=player_options.index(default_player),
-        key="championship_player",
-    )
+    if fixed_player:
+        if fixed_player not in player_options:
+            st.error(
+                f"No player data is available for {fixed_player}. "
+                "Ask an admin to check the account's player link."
+            )
+            return
+        selected_player = fixed_player
+    else:
+        default_player = summary.iloc[0]["PlayerName"]
+        selected_player = st.selectbox(
+            "Select player",
+            options=player_options,
+            index=player_options.index(default_player),
+            key="championship_player",
+        )
     player = summary[
         summary["PlayerName"] == selected_player
     ].iloc[0]
@@ -497,4 +514,5 @@ def render_player_championship(player_data):
     trends = _build_player_trends(player_data, selected_player)
     _render_match_trends(trends)
     _render_match_log(trends)
-    _render_squad_table(summary)
+    if show_squad_table:
+        _render_squad_table(summary)

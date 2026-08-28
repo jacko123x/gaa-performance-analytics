@@ -15,5 +15,8 @@ __pycache__/
 # Streamlit cache
 .streamlit/
 
+# Admin data-entry backups
+data/backups/
+
 # Jupyter
 .ipynb_checkpoints/
