@@ -87,6 +87,64 @@ if not require_login():
 render_account_controls()
 SIGNED_IN_USER = current_user()
 
+st.markdown(
+    """
+    <style>
+    [data-testid="stSidebar"] [role="radiogroup"] {
+        gap: 0.55rem;
+    }
+
+    [data-testid="stSidebar"] [role="radiogroup"] > label {
+        width: 100%;
+        min-height: 3.35rem;
+        margin: 0;
+        padding: 0.85rem 1rem;
+        border: 1px solid transparent;
+        border-radius: 0.7rem;
+        align-items: center;
+        transition:
+            background-color 150ms ease,
+            border-color 150ms ease,
+            transform 150ms ease;
+    }
+
+    [data-testid="stSidebar"] [role="radiogroup"] > label > div:first-child {
+        display: none;
+    }
+
+    [data-testid="stSidebar"] [role="radiogroup"] > label p {
+        font-size: 1.08rem;
+        font-weight: 600;
+        line-height: 1.25;
+    }
+
+    [data-testid="stSidebar"] [role="radiogroup"] > label:hover {
+        background-color: rgba(245, 158, 11, 0.14);
+        border-color: rgba(245, 158, 11, 0.35);
+        transform: translateX(2px);
+    }
+
+    [data-testid="stSidebar"] [role="radiogroup"] > label:has(input:checked),
+    [data-testid="stSidebar"] [role="radiogroup"] > label:has(
+        [aria-checked="true"]
+    ) {
+        background-color: #F59E0B;
+        border-color: #FBBF24;
+        box-shadow: 0 5px 14px rgba(245, 158, 11, 0.2);
+    }
+
+    [data-testid="stSidebar"] [role="radiogroup"] > label:has(input:checked) p,
+    [data-testid="stSidebar"] [role="radiogroup"] > label:has(
+        [aria-checked="true"]
+    ) p {
+        color: #111827;
+        font-weight: 700;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 
 # ==========================================================
 # Helper functions
@@ -300,9 +358,10 @@ st.caption(
 # Analysis view
 # ==========================================================
 
-analysis_view = st.sidebar.selectbox(
+analysis_view = st.sidebar.radio(
     "Analysis view",
     options=available_views(SIGNED_IN_USER["role"]),
+    key="analysis_view",
 )
 
 if analysis_view == "Championship overview":
