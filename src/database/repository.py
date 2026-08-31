@@ -14,12 +14,59 @@ from src.database.models import (
 )
 
 
-def load_matches_db() -> pd.DataFrame:
+MATCH_COLUMNS = [
+    "MatchID", "Date", "Competition", "Round", "Venue", "HomeTeam",
+    "AwayTeam", "HomeScore", "AwayScore", "Result",
+]
+TEAM_STAT_COLUMNS = [
+    "MatchID", "Team", "Opponent", "Goals", "Points", "TwoPointers",
+    "Wides", "Shorts", "KickoutsWon", "KickoutsLost",
+    "ForcedTurnovers", "UnforcedTurnovers", "FreesConceded",
+    "BreakingBallWon", "Attacks", "TotalShots", "TotalScores",
+    "ShotsPlay", "ScoresPlay", "ShotsPlaced", "ScoresPlaced",
+]
+SHOOTING_COLUMNS = [
+    "MatchID", "Team", "Period", "ShotType", "ShotsTaken",
+    "ShotsScored", "Wides", "Shorts", "Blocked", "Post", "Saved",
+]
+SCORING_SOURCE_COLUMNS = ["MatchID", "Team", "Source", "Scores"]
+KICKOUT_COLUMNS = [
+    "MatchID", "Team", "Period", "KickoutType", "Taken", "Won", "Lost",
+    "CleanWins", "BreakWins", "FreeWins", "SidelineWins",
+]
+TURNOVER_COLUMNS = [
+    "MatchID", "Team", "Period", "TurnoversWonForced",
+    "TurnoversWonUnforced", "TurnoversLostForced",
+    "TurnoversLostUnforced",
+]
+PLAYER_MATCH_COLUMNS = [
+    "MatchID", "Date", "Opponent", "HomeAway", "Result", "DataType",
+    "SquadNumber", "PlayerName", "Position", "Captain", "Started",
+    "MinutesPlayed", "Possessions", "HandpassesTotal", "Handpasses1H",
+    "Handpasses2H", "HandpassesCompleted", "FootpassesTotal",
+    "Footpasses1H", "Footpasses2H", "FootpassesCompleted",
+    "IncompletePasses", "KickoutsWon", "BreakingBallsWon",
+    "TurnoversWon", "TurnoversLost", "FreesWon", "FreesConceded",
+    "Assists", "Points", "PointsPlay", "PointsFree", "Points45", "Goals",
+    "TwoPointers", "ShotAttempts", "Scores", "ShotConversionPct",
+    "YellowCards", "BlackCards", "RedCards", "Notes",
+]
+
+
+def _published_only(statement, include_unpublished):
+    if include_unpublished:
+        return statement
+    return statement.where(Match.status == "Published")
+
+
+def load_matches_db(include_unpublished=False) -> pd.DataFrame:
     with SessionLocal() as session:
+        statement = _published_only(
+            select(Match),
+            include_unpublished,
+        ).order_by(Match.date, Match.id)
         rows = (
-            session.execute(
-                select(Match).order_by(Match.date, Match.id)
-            )
+            session.execute(statement)
             .scalars()
             .all()
         )
@@ -39,7 +86,8 @@ def load_matches_db() -> pd.DataFrame:
                     "Result": row.result,
                 }
                 for row in rows
-            ]
+            ],
+            columns=MATCH_COLUMNS,
         )
 
         matches["Date"] = pd.to_datetime(
@@ -55,12 +103,17 @@ def load_matches_db() -> pd.DataFrame:
         return matches
 
 
-def load_team_stats_db() -> pd.DataFrame:
+def load_team_stats_db(include_unpublished=False) -> pd.DataFrame:
     with SessionLocal() as session:
+        statement = _published_only(
+            select(TeamMatchStat, Match).join(
+                Match,
+                TeamMatchStat.match_id == Match.id,
+            ),
+            include_unpublished,
+        ).order_by(Match.id, TeamMatchStat.id)
         rows = session.execute(
-            select(TeamMatchStat, Match)
-            .join(Match, TeamMatchStat.match_id == Match.id)
-            .order_by(Match.id, TeamMatchStat.id)
+            statement
         ).all()
 
         return pd.DataFrame(
@@ -89,16 +142,22 @@ def load_team_stats_db() -> pd.DataFrame:
                     "ScoresPlaced": stat.scores_placed,
                 }
                 for stat, match in rows
-            ]
+            ],
+            columns=TEAM_STAT_COLUMNS,
         )
 
 
-def load_shooting_detail_db() -> pd.DataFrame:
+def load_shooting_detail_db(include_unpublished=False) -> pd.DataFrame:
     with SessionLocal() as session:
+        statement = _published_only(
+            select(ShootingDetail, Match).join(
+                Match,
+                ShootingDetail.match_id == Match.id,
+            ),
+            include_unpublished,
+        ).order_by(Match.id, ShootingDetail.id)
         rows = session.execute(
-            select(ShootingDetail, Match)
-            .join(Match, ShootingDetail.match_id == Match.id)
-            .order_by(Match.id, ShootingDetail.id)
+            statement
         ).all()
 
         return pd.DataFrame(
@@ -117,16 +176,22 @@ def load_shooting_detail_db() -> pd.DataFrame:
                     "Saved": stat.saved,
                 }
                 for stat, match in rows
-            ]
+            ],
+            columns=SHOOTING_COLUMNS,
         )
 
 
-def load_scoring_sources_db() -> pd.DataFrame:
+def load_scoring_sources_db(include_unpublished=False) -> pd.DataFrame:
     with SessionLocal() as session:
+        statement = _published_only(
+            select(ScoringSource, Match).join(
+                Match,
+                ScoringSource.match_id == Match.id,
+            ),
+            include_unpublished,
+        ).order_by(Match.id, ScoringSource.id)
         rows = session.execute(
-            select(ScoringSource, Match)
-            .join(Match, ScoringSource.match_id == Match.id)
-            .order_by(Match.id, ScoringSource.id)
+            statement
         ).all()
 
         return pd.DataFrame(
@@ -138,16 +203,22 @@ def load_scoring_sources_db() -> pd.DataFrame:
                     "Scores": stat.scores,
                 }
                 for stat, match in rows
-            ]
+            ],
+            columns=SCORING_SOURCE_COLUMNS,
         )
 
 
-def load_kickout_stats_db() -> pd.DataFrame:
+def load_kickout_stats_db(include_unpublished=False) -> pd.DataFrame:
     with SessionLocal() as session:
+        statement = _published_only(
+            select(KickoutStat, Match).join(
+                Match,
+                KickoutStat.match_id == Match.id,
+            ),
+            include_unpublished,
+        ).order_by(Match.id, KickoutStat.id)
         rows = session.execute(
-            select(KickoutStat, Match)
-            .join(Match, KickoutStat.match_id == Match.id)
-            .order_by(Match.id, KickoutStat.id)
+            statement
         ).all()
 
         return pd.DataFrame(
@@ -166,16 +237,22 @@ def load_kickout_stats_db() -> pd.DataFrame:
                     "SidelineWins": stat.sideline_wins,
                 }
                 for stat, match in rows
-            ]
+            ],
+            columns=KICKOUT_COLUMNS,
         )
 
 
-def load_turnover_stats_db() -> pd.DataFrame:
+def load_turnover_stats_db(include_unpublished=False) -> pd.DataFrame:
     with SessionLocal() as session:
+        statement = _published_only(
+            select(TurnoverStat, Match).join(
+                Match,
+                TurnoverStat.match_id == Match.id,
+            ),
+            include_unpublished,
+        ).order_by(Match.id, TurnoverStat.id)
         rows = session.execute(
-            select(TurnoverStat, Match)
-            .join(Match, TurnoverStat.match_id == Match.id)
-            .order_by(Match.id, TurnoverStat.id)
+            statement
         ).all()
 
         return pd.DataFrame(
@@ -190,17 +267,21 @@ def load_turnover_stats_db() -> pd.DataFrame:
                     "TurnoversLostUnforced": stat.turnovers_lost_unforced,
                 }
                 for stat, match in rows
-            ]
+            ],
+            columns=TURNOVER_COLUMNS,
         )
 
 
-def load_player_match_data_db() -> pd.DataFrame:
+def load_player_match_data_db(include_unpublished=False) -> pd.DataFrame:
     with SessionLocal() as session:
-        rows = session.execute(
+        statement = _published_only(
             select(PlayerMatchStat, Player, Match)
             .join(Player, PlayerMatchStat.player_id == Player.id)
-            .join(Match, PlayerMatchStat.match_id == Match.id)
-            .order_by(Match.id, PlayerMatchStat.id)
+            .join(Match, PlayerMatchStat.match_id == Match.id),
+            include_unpublished,
+        ).order_by(Match.id, PlayerMatchStat.id)
+        rows = session.execute(
+            statement
         ).all()
 
         return pd.DataFrame(
@@ -250,7 +331,8 @@ def load_player_match_data_db() -> pd.DataFrame:
                     "Notes": stat.notes,
                 }
                 for stat, player, match in rows
-            ]
+            ],
+            columns=PLAYER_MATCH_COLUMNS,
         )
 
 

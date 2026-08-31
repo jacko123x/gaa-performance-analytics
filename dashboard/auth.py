@@ -1,5 +1,3 @@
-import os
-
 import streamlit as st
 
 from src.database.security import verify_password
@@ -7,14 +5,18 @@ from src.database.user_repository import (
     find_active_user_db,
     load_users_db,
 )
+from src.logging_config import (
+    get_logger,
+    identifier_fingerprint,
+    log_event,
+)
+from src.settings import get_settings
 
 
 # New demo accounts receive this password; existing hashes remain unchanged.
-DEFAULT_SHARED_PASSWORD = os.getenv(
-    "INITIAL_SHARED_PASSWORD",
-    "stacks2026",
-)
+DEFAULT_SHARED_PASSWORD = get_settings().initial_shared_password
 VALID_ROLES = ["Admin", "Coach", "Player", "Viewer"]
+LOGGER = get_logger("gaa_analytics.auth")
 
 
 def load_users():
@@ -130,8 +132,19 @@ def require_login():
                 st.session_state["authenticated_player"] = (
                     user["PlayerName"] or None
                 )
+                log_event(
+                    LOGGER,
+                    "login_succeeded",
+                    username=user["Username"],
+                    role=user["Role"],
+                )
                 st.rerun()
             else:
+                log_event(
+                    LOGGER,
+                    "login_failed",
+                    identifier_hash=identifier_fingerprint(username),
+                )
                 st.error(
                     "The username or password is incorrect, or the "
                     "account is inactive.",
@@ -188,6 +201,12 @@ def render_account_controls():
             icon=":material/logout:",
             width="stretch",
         ):
+            log_event(
+                LOGGER,
+                "logout_succeeded",
+                username=user["username"],
+                role=user["role"],
+            )
             for key in [
                 "authenticated",
                 "authenticated_user",

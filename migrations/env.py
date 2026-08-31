@@ -1,12 +1,11 @@
-import os
 from logging.config import fileConfig
 
 from alembic import context
-from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from src.database.db import Base
 from src.database import models  # noqa: F401
+from src.settings import get_settings
 
 
 # ---------------------------------------------------------
@@ -16,22 +15,9 @@ from src.database import models  # noqa: F401
 config = context.config
 
 
-# ---------------------------------------------------------
-# Load environment variables
-# ---------------------------------------------------------
+database_url = get_settings().database_url
 
-load_dotenv()
-
-database_url = os.getenv("DATABASE_URL")
-
-if not database_url:
-    raise RuntimeError(
-        "DATABASE_URL is not configured. "
-        "Make sure a .env file exists in the project root."
-    )
-
-# Override sqlalchemy.url from alembic.ini with the secure
-# value loaded from .env.
+# Override sqlalchemy.url with the validated runtime value.
 config.set_main_option(
     "sqlalchemy.url",
     database_url,

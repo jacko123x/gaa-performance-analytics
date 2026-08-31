@@ -12,14 +12,19 @@ __pycache__/
 # IDE
 .vscode/
 
-# Streamlit cache
-.streamlit/
+# Streamlit local secrets
+.streamlit/secrets.toml
 
 # Admin data-entry backups
 data/backups/
 
+# PostgreSQL backups (keep these outside source control)
+backups/database/
+
 # Jupyter
 .ipynb_checkpoints/
 
-# Env files
+# Environment files
 .env
+.env.*
+!.env.example

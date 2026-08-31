@@ -12,32 +12,32 @@ from src.database.repository import (
 )
 
 
-def load_matches() -> pd.DataFrame:
-    return load_matches_db()
+def load_matches(include_unpublished=False) -> pd.DataFrame:
+    return load_matches_db(include_unpublished=include_unpublished)
 
 
-def load_team_stats() -> pd.DataFrame:
-    return load_team_stats_db()
+def load_team_stats(include_unpublished=False) -> pd.DataFrame:
+    return load_team_stats_db(include_unpublished=include_unpublished)
 
 
-def load_shooting_detail() -> pd.DataFrame:
-    return load_shooting_detail_db()
+def load_shooting_detail(include_unpublished=False) -> pd.DataFrame:
+    return load_shooting_detail_db(include_unpublished=include_unpublished)
 
 
-def load_scoring_sources() -> pd.DataFrame:
-    return load_scoring_sources_db()
+def load_scoring_sources(include_unpublished=False) -> pd.DataFrame:
+    return load_scoring_sources_db(include_unpublished=include_unpublished)
 
 
-def load_kickout_stats() -> pd.DataFrame:
-    return load_kickout_stats_db()
+def load_kickout_stats(include_unpublished=False) -> pd.DataFrame:
+    return load_kickout_stats_db(include_unpublished=include_unpublished)
 
 
-def load_turnover_stats() -> pd.DataFrame:
-    return load_turnover_stats_db()
+def load_turnover_stats(include_unpublished=False) -> pd.DataFrame:
+    return load_turnover_stats_db(include_unpublished=include_unpublished)
 
 
-def load_player_match_data() -> pd.DataFrame:
-    return load_player_match_data_db()
+def load_player_match_data(include_unpublished=False) -> pd.DataFrame:
+    return load_player_match_data_db(include_unpublished=include_unpublished)
 
 
 def load_squad_numbers() -> pd.DataFrame:

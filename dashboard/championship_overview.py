@@ -590,6 +590,13 @@ def _render_possession_trends(
             }
         )
     )
+    kickout_rates = kickout_rates.reindex(
+        columns=[
+            "Match",
+            "Own retention",
+            "Opposition kickouts won",
+        ]
+    )
 
     with kickout_column.container(border=True):
         figure = _line_chart(

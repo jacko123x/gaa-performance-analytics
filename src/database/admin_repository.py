@@ -1,10 +1,11 @@
-from datetime import date
+from datetime import date, datetime
 
 import pandas as pd
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 
 from src.database.db import SessionLocal
 from src.database.models import (
+    AuditEvent,
     KickoutStat,
     Match,
     Player,
@@ -13,7 +14,18 @@ from src.database.models import (
     ShootingDetail,
     TeamMatchStat,
     TurnoverStat,
+    utc_now,
 )
+from src.logging_config import get_logger, log_event
+
+
+MATCH_STATUSES = ("Draft", "Review", "Published")
+ALLOWED_STATUS_TRANSITIONS = {
+    "Draft": {"Review"},
+    "Review": {"Draft", "Published"},
+    "Published": {"Draft"},
+}
+LOGGER = get_logger("gaa_analytics.admin")
 
 
 def _text(value, default=None):
@@ -49,6 +61,47 @@ def _date(value):
     if isinstance(value, date):
         return value
     return pd.to_datetime(value, errors="raise").date()
+
+
+def _json_value(value):
+    if value is None or pd.isna(value):
+        return None
+    if isinstance(value, (date, datetime, pd.Timestamp)):
+        return value.isoformat()
+    if hasattr(value, "item"):
+        return value.item()
+    return value
+
+
+def _frame_snapshot(data):
+    return [
+        {key: _json_value(value) for key, value in row.items()}
+        for row in data.dropna(how="all").to_dict("records")
+    ]
+
+
+def _add_audit_event(
+    session,
+    *,
+    username,
+    action,
+    match=None,
+    dataset=None,
+    before_data=None,
+    after_data=None,
+    details=None,
+):
+    session.add(
+        AuditEvent(
+            username=username,
+            action=action,
+            match_id=match.id if match else None,
+            dataset=dataset,
+            before_data=before_data,
+            after_data=after_data,
+            details=details,
+        )
+    )
 
 
 def _match_for_code(session, match_code):
@@ -283,9 +336,13 @@ def replace_match_dataset_db(
     dataset_key,
     match_code,
     data: pd.DataFrame,
+    *,
+    username="system",
+    before_data=None,
 ) -> None:
     """Replace one match's dataset atomically in PostgreSQL."""
 
+    row_count = len(data.dropna(how="all"))
     with SessionLocal.begin() as session:
         _replace_match_dataset(
             session,
@@ -293,6 +350,41 @@ def replace_match_dataset_db(
             match_code,
             data,
         )
+        session.flush()
+        match = _match_for_code(session, match_code)
+        previous_status = match.status
+        match.status = "Draft"
+        match.updated_at = utc_now()
+        match.published_at = None
+        match.published_by = None
+        _add_audit_event(
+            session,
+            username=username,
+            action="dataset_replaced",
+            match=match,
+            dataset=dataset_key,
+            before_data=(
+                _frame_snapshot(before_data)
+                if isinstance(before_data, pd.DataFrame)
+                else before_data
+            ),
+            after_data=_frame_snapshot(data),
+            details={
+                "previous_status": previous_status,
+                "new_status": "Draft",
+                "row_count": row_count,
+            },
+        )
+    log_event(
+        LOGGER,
+        "match_dataset_replaced",
+        username=username,
+        match_id=match_code,
+        dataset=dataset_key,
+        previous_status=previous_status,
+        new_status="Draft",
+        row_count=row_count,
+    )
 
 
 def _import_match_bundle(session, bundle):
@@ -335,8 +427,155 @@ def _import_match_bundle(session, bundle):
     return match_code
 
 
-def import_match_bundle_db(bundle) -> str:
+def import_match_bundle_db(bundle, *, username="system") -> str:
     """Import every dataset for one new match in a single transaction."""
 
     with SessionLocal.begin() as session:
-        return _import_match_bundle(session, bundle)
+        match_code = _import_match_bundle(session, bundle)
+        match = _match_for_code(session, match_code)
+        match.status = "Draft"
+        match.updated_at = utc_now()
+        _add_audit_event(
+            session,
+            username=username,
+            action="match_imported",
+            match=match,
+            after_data={
+                key: _frame_snapshot(value)
+                for key, value in bundle.items()
+            },
+            details={
+                "status": "Draft",
+                "row_counts": {
+                    key: len(value.dropna(how="all"))
+                    for key, value in bundle.items()
+                },
+            },
+        )
+    log_event(
+        LOGGER,
+        "match_imported",
+        username=username,
+        match_id=match_code,
+        status="Draft",
+        row_counts={
+            key: len(value.dropna(how="all"))
+            for key, value in bundle.items()
+        },
+    )
+    return match_code
+
+
+def load_match_lifecycle_db() -> pd.DataFrame:
+    """Return every match with publication state and dataset completeness."""
+
+    child_models = {
+        "Team stats": TeamMatchStat,
+        "Shooting": ShootingDetail,
+        "Scoring sources": ScoringSource,
+        "Kickouts": KickoutStat,
+        "Turnovers": TurnoverStat,
+        "Player data": PlayerMatchStat,
+    }
+    with SessionLocal() as session:
+        matches = session.scalars(
+            select(Match).order_by(Match.date, Match.id)
+        ).all()
+        rows = []
+        for match in matches:
+            counts = {
+                label: session.scalar(
+                    select(func.count())
+                    .select_from(model)
+                    .where(model.match_id == match.id)
+                )
+                for label, model in child_models.items()
+            }
+            missing = [label for label, count in counts.items() if not count]
+            rows.append(
+                {
+                    "MatchID": match.match_code,
+                    "Date": match.date,
+                    "Fixture": f"{match.home_team} v {match.away_team}",
+                    "Status": match.status,
+                    "Complete": not missing,
+                    "Missing": ", ".join(missing),
+                    "Updated": match.updated_at,
+                    "Published": match.published_at,
+                    "PublishedBy": match.published_by,
+                    **counts,
+                }
+            )
+        return pd.DataFrame(rows)
+
+
+def transition_match_status_db(
+    match_code,
+    new_status,
+    *,
+    username,
+    details=None,
+) -> None:
+    if new_status not in MATCH_STATUSES:
+        raise ValueError(f"Unknown match status: {new_status}")
+
+    with SessionLocal.begin() as session:
+        match = _match_for_code(session, match_code)
+        old_status = match.status
+        if new_status not in ALLOWED_STATUS_TRANSITIONS[old_status]:
+            raise ValueError(
+                f"Cannot move {match_code} from {old_status} to {new_status}"
+            )
+        match.status = new_status
+        match.updated_at = utc_now()
+        if new_status == "Published":
+            match.published_at = utc_now()
+            match.published_by = username
+        else:
+            match.published_at = None
+            match.published_by = None
+        _add_audit_event(
+            session,
+            username=username,
+            action="status_changed",
+            match=match,
+            before_data={"status": old_status},
+            after_data={"status": new_status},
+            details=details,
+        )
+    log_event(
+        LOGGER,
+        "match_status_changed",
+        username=username,
+        match_id=match_code,
+        previous_status=old_status,
+        new_status=new_status,
+        published=new_status == "Published",
+    )
+
+
+def load_audit_events_db(match_code=None) -> pd.DataFrame:
+    with SessionLocal() as session:
+        statement = (
+            select(AuditEvent, Match)
+            .outerjoin(Match, AuditEvent.match_id == Match.id)
+            .order_by(AuditEvent.created_at.desc(), AuditEvent.id.desc())
+        )
+        if match_code:
+            statement = statement.where(Match.match_code == match_code)
+        rows = session.execute(statement).all()
+        return pd.DataFrame(
+            [
+                {
+                    "When": event.created_at,
+                    "User": event.username,
+                    "MatchID": match.match_code if match else None,
+                    "Action": event.action,
+                    "Dataset": event.dataset,
+                    "Before": event.before_data,
+                    "After": event.after_data,
+                    "Details": event.details,
+                }
+                for event, match in rows
+            ]
+        )

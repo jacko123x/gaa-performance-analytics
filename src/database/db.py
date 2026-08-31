@@ -1,21 +1,31 @@
-import os
-
-from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
+from src.settings import get_settings
 
-load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL")
+settings = get_settings()
+DATABASE_URL = settings.database_url
 
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL is not configured")
-
+engine_options = {
+    "pool_pre_ping": True,
+    "pool_recycle": settings.db_pool_recycle_seconds,
+    "echo": settings.sql_echo,
+}
+if DATABASE_URL.startswith("postgresql+psycopg://"):
+    engine_options.update(
+        {
+            "pool_size": settings.db_pool_size,
+            "max_overflow": settings.db_max_overflow,
+            "connect_args": {
+                "connect_timeout": settings.db_connect_timeout_seconds,
+            },
+        }
+    )
 
 engine = create_engine(
     DATABASE_URL,
-    pool_pre_ping=True,
+    **engine_options,
 )
 
 

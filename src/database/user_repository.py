@@ -4,6 +4,7 @@ from sqlalchemy import select
 from src.database.db import SessionLocal
 from src.database.models import Player, User
 from src.database.security import hash_password
+from src.logging_config import get_logger, log_event
 
 
 USER_COLUMNS = [
@@ -14,6 +15,7 @@ USER_COLUMNS = [
     "PlayerName",
     "Active",
 ]
+LOGGER = get_logger("gaa_analytics.users")
 
 
 def load_users_db() -> pd.DataFrame:
@@ -115,6 +117,18 @@ def _save_users(session, users: pd.DataFrame, default_password: str) -> None:
             session.delete(user)
 
 
-def save_users_db(users: pd.DataFrame, default_password: str) -> None:
+def save_users_db(
+    users: pd.DataFrame,
+    default_password: str,
+    *,
+    actor_username="system",
+) -> None:
     with SessionLocal.begin() as session:
         _save_users(session, users, default_password)
+    log_event(
+        LOGGER,
+        "users_saved",
+        username=actor_username,
+        user_count=len(users),
+        active_count=int(users["Active"].astype(bool).sum()),
+    )

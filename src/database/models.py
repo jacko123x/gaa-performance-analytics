@@ -1,12 +1,14 @@
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     Date,
     DateTime,
     Float,
     ForeignKey,
     Integer,
+    JSON,
     String,
     Text,
     UniqueConstraint,
@@ -14,6 +16,12 @@ from sqlalchemy import (
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.db import Base
+
+
+def utc_now():
+    """Return naive UTC for database columns stored without a timezone."""
+
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 class Match(Base):
@@ -34,11 +42,25 @@ class Match(Base):
     away_score: Mapped[int | None] = mapped_column(Integer)
     result: Mapped[str | None] = mapped_column(String(20))
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=datetime.utcnow,
+    status: Mapped[str] = mapped_column(
+        String(20),
+        default="Draft",
         nullable=False,
     )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=utc_now,
+        nullable=False,
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=utc_now,
+        onupdate=utc_now,
+        nullable=False,
+    )
+    published_at: Mapped[datetime | None] = mapped_column(DateTime)
+    published_by: Mapped[str | None] = mapped_column(String(100))
 
     team_stats = relationship(
         "TeamMatchStat",
@@ -74,6 +96,19 @@ class Match(Base):
         "PlayerMatchStat",
         back_populates="match",
         cascade="all, delete-orphan",
+    )
+
+    audit_events = relationship(
+        "AuditEvent",
+        back_populates="match",
+        cascade="all, delete-orphan",
+    )
+
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('Draft', 'Review', 'Published')",
+            name="ck_matches_status",
+        ),
     )
 
 
@@ -269,7 +304,7 @@ class Player(Base):
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=utc_now,
         nullable=False,
     )
 
@@ -386,8 +421,30 @@ class User(Base):
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime,
-        default=datetime.utcnow,
+        default=utc_now,
         nullable=False,
     )
 
     player = relationship("Player", back_populates="users")
+
+
+class AuditEvent(Base):
+    __tablename__ = "audit_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=utc_now,
+        nullable=False,
+    )
+    username: Mapped[str] = mapped_column(String(100), nullable=False)
+    match_id: Mapped[int | None] = mapped_column(
+        ForeignKey("matches.id", ondelete="CASCADE"),
+    )
+    action: Mapped[str] = mapped_column(String(50), nullable=False)
+    dataset: Mapped[str | None] = mapped_column(String(50))
+    before_data: Mapped[dict | list | None] = mapped_column(JSON)
+    after_data: Mapped[dict | list | None] = mapped_column(JSON)
+    details: Mapped[dict | None] = mapped_column(JSON)
+
+    match = relationship("Match", back_populates="audit_events")
