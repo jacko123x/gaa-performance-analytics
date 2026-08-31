@@ -235,6 +235,16 @@ DATASET_MODELS = {
     "turnovers": (TurnoverStat, _turnover_stat),
 }
 
+BUNDLE_DATASET_ORDER = [
+    "matches",
+    "team_stats",
+    "shooting",
+    "scoring_sources",
+    "kickouts",
+    "turnovers",
+    "player_data",
+]
+
 
 def _replace_match_dataset(
     session,
@@ -283,3 +293,50 @@ def replace_match_dataset_db(
             match_code,
             data,
         )
+
+
+def _import_match_bundle(session, bundle):
+    missing_datasets = [
+        key for key in BUNDLE_DATASET_ORDER if key not in bundle
+    ]
+    if missing_datasets:
+        raise ValueError(
+            "Missing datasets: " + ", ".join(missing_datasets)
+        )
+
+    match_rows = bundle["matches"].dropna(how="all")
+    if len(match_rows) != 1:
+        raise ValueError("The matches dataset must contain exactly one row")
+
+    match_code = _text(match_rows.iloc[0].get("MatchID"))
+    if match_code is None:
+        raise ValueError("MatchID cannot be blank")
+    if session.scalar(
+        select(Match.id).where(Match.match_code == match_code)
+    ) is not None:
+        raise ValueError(f"MatchID already exists: {match_code}")
+
+    _replace_match_dataset(
+        session,
+        "matches",
+        match_code,
+        match_rows,
+    )
+    session.flush()
+
+    for dataset_key in BUNDLE_DATASET_ORDER[1:]:
+        _replace_match_dataset(
+            session,
+            dataset_key,
+            match_code,
+            bundle[dataset_key],
+        )
+
+    return match_code
+
+
+def import_match_bundle_db(bundle) -> str:
+    """Import every dataset for one new match in a single transaction."""
+
+    with SessionLocal.begin() as session:
+        return _import_match_bundle(session, bundle)
