@@ -1,0 +1,285 @@
+from datetime import date
+
+import pandas as pd
+from sqlalchemy import delete, select
+
+from src.database.db import SessionLocal
+from src.database.models import (
+    KickoutStat,
+    Match,
+    Player,
+    PlayerMatchStat,
+    ScoringSource,
+    ShootingDetail,
+    TeamMatchStat,
+    TurnoverStat,
+)
+
+
+def _text(value, default=None):
+    if pd.isna(value):
+        return default
+    cleaned = str(value).strip()
+    return cleaned if cleaned else default
+
+
+def _integer(value, default=0):
+    if pd.isna(value) or str(value).strip() == "":
+        return default
+    return int(float(value))
+
+
+def _float(value, default=None):
+    if pd.isna(value) or str(value).strip() == "":
+        return default
+    return float(value)
+
+
+def _boolean(value, default=False):
+    if pd.isna(value):
+        return default
+    if isinstance(value, bool):
+        return value
+    return str(value).strip().lower() in {"true", "yes", "y", "1"}
+
+
+def _date(value):
+    if pd.isna(value) or str(value).strip() == "":
+        return None
+    if isinstance(value, date):
+        return value
+    return pd.to_datetime(value, errors="raise").date()
+
+
+def _match_for_code(session, match_code):
+    match = session.scalar(
+        select(Match).where(Match.match_code == match_code)
+    )
+    if match is None:
+        raise ValueError(f"Unknown MatchID: {match_code}")
+    return match
+
+
+def _save_matches(session, rows):
+    for row in rows:
+        match_code = _text(row.get("MatchID"))
+        if match_code is None:
+            raise ValueError("MatchID cannot be blank")
+
+        match = session.scalar(
+            select(Match).where(Match.match_code == match_code)
+        )
+        if match is None:
+            match = Match(match_code=match_code)
+            session.add(match)
+
+        match.date = _date(row.get("Date"))
+        match.competition = _text(row.get("Competition"))
+        match.round = _text(row.get("Round"))
+        match.venue = _text(row.get("Venue"))
+        match.home_team = _text(row.get("HomeTeam"))
+        match.away_team = _text(row.get("AwayTeam"))
+        match.home_score = _integer(row.get("HomeScore"), default=None)
+        match.away_score = _integer(row.get("AwayScore"), default=None)
+        match.result = _text(row.get("Result"))
+
+
+def _team_stat(row, match_id):
+    return TeamMatchStat(
+        match_id=match_id,
+        team=_text(row.get("Team")),
+        opponent=_text(row.get("Opponent")),
+        goals=_integer(row.get("Goals")),
+        points=_integer(row.get("Points")),
+        two_pointers=_integer(row.get("TwoPointers")),
+        wides=_integer(row.get("Wides")),
+        shorts=_integer(row.get("Shorts")),
+        kickouts_won=_integer(row.get("KickoutsWon")),
+        kickouts_lost=_integer(row.get("KickoutsLost")),
+        forced_turnovers=_integer(row.get("ForcedTurnovers")),
+        unforced_turnovers=_integer(row.get("UnforcedTurnovers")),
+        frees_conceded=_integer(row.get("FreesConceded")),
+        breaking_ball_won=_integer(row.get("BreakingBallWon")),
+        attacks=_integer(row.get("Attacks")),
+        total_shots=_integer(row.get("TotalShots")),
+        total_scores=_integer(row.get("TotalScores")),
+        shots_play=_integer(row.get("ShotsPlay")),
+        scores_play=_integer(row.get("ScoresPlay")),
+        shots_placed=_integer(row.get("ShotsPlaced")),
+        scores_placed=_integer(row.get("ScoresPlaced")),
+    )
+
+
+def _shooting_stat(row, match_id):
+    return ShootingDetail(
+        match_id=match_id,
+        team=_text(row.get("Team")),
+        period=_text(row.get("Period")),
+        shot_type=_text(row.get("ShotType")),
+        shots_taken=_integer(row.get("ShotsTaken")),
+        shots_scored=_integer(row.get("ShotsScored")),
+        wides=_integer(row.get("Wides")),
+        shorts=_integer(row.get("Shorts")),
+        blocked=_integer(row.get("Blocked")),
+        post=_integer(row.get("Post")),
+        saved=_integer(row.get("Saved")),
+    )
+
+
+def _scoring_source(row, match_id):
+    return ScoringSource(
+        match_id=match_id,
+        team=_text(row.get("Team")),
+        source=_text(row.get("Source")),
+        scores=_integer(row.get("Scores")),
+    )
+
+
+def _kickout_stat(row, match_id):
+    return KickoutStat(
+        match_id=match_id,
+        team=_text(row.get("Team")),
+        period=_text(row.get("Period")),
+        kickout_type=_text(row.get("KickoutType")),
+        taken=_integer(row.get("Taken")),
+        won=_integer(row.get("Won")),
+        lost=_integer(row.get("Lost")),
+        clean_wins=_integer(row.get("CleanWins")),
+        break_wins=_integer(row.get("BreakWins")),
+        free_wins=_integer(row.get("FreeWins")),
+        sideline_wins=_integer(row.get("SidelineWins")),
+    )
+
+
+def _turnover_stat(row, match_id):
+    return TurnoverStat(
+        match_id=match_id,
+        team=_text(row.get("Team")),
+        period=_text(row.get("Period")),
+        turnovers_won_forced=_integer(row.get("TurnoversWonForced")),
+        turnovers_won_unforced=_integer(row.get("TurnoversWonUnforced")),
+        turnovers_lost_forced=_integer(row.get("TurnoversLostForced")),
+        turnovers_lost_unforced=_integer(row.get("TurnoversLostUnforced")),
+    )
+
+
+def _player_match_stat(session, row, match_id):
+    player_name = _text(row.get("PlayerName"))
+    player = session.scalar(
+        select(Player).where(Player.player_name == player_name)
+    )
+    if player is None:
+        player = Player(
+            player_name=player_name,
+            squad_number=_integer(row.get("SquadNumber"), default=None),
+        )
+        session.add(player)
+        session.flush()
+    elif row.get("SquadNumber") is not None:
+        player.squad_number = _integer(
+            row.get("SquadNumber"),
+            default=None,
+        )
+
+    return PlayerMatchStat(
+        match_id=match_id,
+        player_id=player.id,
+        date=_date(row.get("Date")),
+        opponent=_text(row.get("Opponent")),
+        home_away=_text(row.get("HomeAway")),
+        result=_text(row.get("Result")),
+        data_type=_text(row.get("DataType")),
+        squad_number=_integer(row.get("SquadNumber"), default=None),
+        position=_text(row.get("Position")),
+        captain=_boolean(row.get("Captain")),
+        started=_boolean(row.get("Started")),
+        minutes_played=_float(row.get("MinutesPlayed")),
+        possessions=_integer(row.get("Possessions")),
+        handpasses_total=_integer(row.get("HandpassesTotal")),
+        handpasses_1h=_integer(row.get("Handpasses1H")),
+        handpasses_2h=_integer(row.get("Handpasses2H")),
+        handpasses_completed=_integer(row.get("HandpassesCompleted")),
+        footpasses_total=_integer(row.get("FootpassesTotal")),
+        footpasses_1h=_integer(row.get("Footpasses1H")),
+        footpasses_2h=_integer(row.get("Footpasses2H")),
+        footpasses_completed=_integer(row.get("FootpassesCompleted")),
+        incomplete_passes=_integer(row.get("IncompletePasses")),
+        kickouts_won=_integer(row.get("KickoutsWon")),
+        breaking_balls_won=_integer(row.get("BreakingBallsWon")),
+        turnovers_won=_integer(row.get("TurnoversWon")),
+        turnovers_lost=_integer(row.get("TurnoversLost")),
+        frees_won=_integer(row.get("FreesWon")),
+        frees_conceded=_integer(row.get("FreesConceded")),
+        assists=_integer(row.get("Assists")),
+        points=_integer(row.get("Points")),
+        points_play=_integer(row.get("PointsPlay")),
+        points_free=_integer(row.get("PointsFree")),
+        points_45=_integer(row.get("Points45")),
+        goals=_integer(row.get("Goals")),
+        two_pointers=_integer(row.get("TwoPointers")),
+        shot_attempts=_integer(row.get("ShotAttempts")),
+        scores=_integer(row.get("Scores")),
+        shot_conversion_pct=_float(row.get("ShotConversionPct")),
+        yellow_cards=_integer(row.get("YellowCards")),
+        black_cards=_integer(row.get("BlackCards")),
+        red_cards=_integer(row.get("RedCards")),
+        notes=_text(row.get("Notes")),
+    )
+
+
+DATASET_MODELS = {
+    "team_stats": (TeamMatchStat, _team_stat),
+    "shooting": (ShootingDetail, _shooting_stat),
+    "scoring_sources": (ScoringSource, _scoring_source),
+    "kickouts": (KickoutStat, _kickout_stat),
+    "turnovers": (TurnoverStat, _turnover_stat),
+}
+
+
+def _replace_match_dataset(
+    session,
+    dataset_key,
+    match_code,
+    data: pd.DataFrame,
+):
+    rows = data.dropna(how="all").to_dict("records")
+
+    if dataset_key == "matches":
+        _save_matches(session, rows)
+        return
+
+    match = _match_for_code(session, match_code)
+
+    if dataset_key == "player_data":
+        session.execute(
+            delete(PlayerMatchStat).where(
+                PlayerMatchStat.match_id == match.id
+            )
+        )
+        for row in rows:
+            session.add(_player_match_stat(session, row, match.id))
+        return
+
+    try:
+        model, builder = DATASET_MODELS[dataset_key]
+    except KeyError as error:
+        raise ValueError(f"Unsupported dataset: {dataset_key}") from error
+
+    session.execute(delete(model).where(model.match_id == match.id))
+    session.add_all([builder(row, match.id) for row in rows])
+
+
+def replace_match_dataset_db(
+    dataset_key,
+    match_code,
+    data: pd.DataFrame,
+) -> None:
+    """Replace one match's dataset atomically in PostgreSQL."""
+
+    with SessionLocal.begin() as session:
+        _replace_match_dataset(
+            session,
+            dataset_key,
+            match_code,
+            data,
+        )

@@ -1,19 +1,24 @@
-import hmac
-from pathlib import Path
+import os
 
-import pandas as pd
 import streamlit as st
 
+from src.database.security import verify_password
+from src.database.user_repository import (
+    find_active_user_db,
+    load_users_db,
+)
 
-# Demo-only shared password. The user registry provides roles and player links.
-DEMO_PASSWORD = "stacks2026"
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-USERS_FILE = PROJECT_ROOT / "data" / "app_users.csv"
+
+# New demo accounts receive this password; existing hashes remain unchanged.
+DEFAULT_SHARED_PASSWORD = os.getenv(
+    "INITIAL_SHARED_PASSWORD",
+    "stacks2026",
+)
 VALID_ROLES = ["Admin", "Coach", "Player", "Viewer"]
 
 
 def load_users():
-    users = pd.read_csv(USERS_FILE, dtype=str).fillna("")
+    users = load_users_db()
     users["Username"] = users["Username"].str.strip().str.lower()
     users["DisplayName"] = users["DisplayName"].str.strip()
     users["Role"] = users["Role"].str.strip()
@@ -32,6 +37,11 @@ def validate_users(users):
         errors.append("Every user needs a username.")
     if usernames.duplicated().any():
         errors.append("Usernames must be unique.")
+    blank_display_names = (
+        users["DisplayName"].fillna("").astype(str).str.strip().eq("")
+    )
+    if blank_display_names.any():
+        errors.append("Every user needs a display name.")
     invalid_roles = sorted(set(users["Role"]) - set(VALID_ROLES))
     if invalid_roles:
         errors.append(f"Invalid roles: {', '.join(invalid_roles)}.")
@@ -51,20 +61,18 @@ def validate_users(users):
 
 
 def _find_user(username):
-    username = username.strip().lower()
-    users = load_users()
-    matching = users[
-        users["Username"].eq(username) & users["Active"]
-    ]
-    if len(matching) != 1:
-        return None
-    return matching.iloc[0]
+    return find_active_user_db(username)
 
 
 def _credentials_match(username, password):
     user = _find_user(username)
-    password_matches = hmac.compare_digest(password, DEMO_PASSWORD)
-    return user if user is not None and password_matches else None
+    if user is None:
+        return None
+    return (
+        user
+        if verify_password(password, user["PasswordHash"])
+        else None
+    )
 
 
 def require_login():
@@ -125,7 +133,8 @@ def require_login():
                 st.rerun()
             else:
                 st.error(
-                    "The username or password is incorrect, or the account is inactive.",
+                    "The username or password is incorrect, or the "
+                    "account is inactive.",
                     icon=":material/error:",
                 )
 

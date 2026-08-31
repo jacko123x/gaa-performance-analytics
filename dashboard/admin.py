@@ -1,12 +1,23 @@
-import shutil
-from datetime import datetime
-from pathlib import Path
-
 import pandas as pd
 import streamlit as st
 
-from auth import USERS_FILE, VALID_ROLES, load_users, validate_users
-from load_data import DATASETS, DATA_DIR
+from auth import (
+    DEFAULT_SHARED_PASSWORD,
+    VALID_ROLES,
+    load_users,
+    validate_users,
+)
+from load_data import (
+    load_kickout_stats,
+    load_matches,
+    load_player_match_data,
+    load_scoring_sources,
+    load_shooting_detail,
+    load_team_stats,
+    load_turnover_stats,
+)
+from src.database.admin_repository import replace_match_dataset_db
+from src.database.user_repository import save_users_db
 from validation import run_data_quality_checks, validate_team_stats
 
 
@@ -41,23 +52,19 @@ DATASET_CONFIG = {
     },
 }
 
+DATASET_LOADERS = {
+    "matches": load_matches,
+    "team_stats": load_team_stats,
+    "shooting": load_shooting_detail,
+    "scoring_sources": load_scoring_sources,
+    "kickouts": load_kickout_stats,
+    "turnovers": load_turnover_stats,
+    "player_data": load_player_match_data,
+}
+
 
 def _read_dataset(dataset_key):
-    return pd.read_csv(DATA_DIR / DATASETS[dataset_key])
-
-
-def _atomic_csv_write(data, file_path):
-    backup_dir = DATA_DIR / "backups"
-    backup_dir.mkdir(exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    backup_path = backup_dir / f"{file_path.stem}-{timestamp}.csv"
-    if file_path.exists():
-        shutil.copy2(file_path, backup_path)
-
-    temporary_path = file_path.with_suffix(".tmp")
-    data.to_csv(temporary_path, index=False)
-    temporary_path.replace(file_path)
-    return backup_path
+    return DATASET_LOADERS[dataset_key]()
 
 
 def _normalise_boolean_column(data, column):
@@ -117,7 +124,11 @@ def _validate_candidate(candidate, original, config, dataset_label, match_ids):
             errors.append(f"Required column {column} cannot be blank.")
 
     for column in config["primary_key"]:
-        if candidate[column].isna().any() or candidate[column].astype(str).str.strip().eq("").any():
+        has_blank_key = (
+            candidate[column].isna().any()
+            or candidate[column].astype(str).str.strip().eq("").any()
+        )
+        if has_blank_key:
             errors.append(f"Primary-key column {column} cannot be blank.")
     duplicate_count = int(
         candidate.duplicated(config["primary_key"], keep=False).sum()
@@ -151,7 +162,7 @@ def _replace_match_rows(original, edited_rows, match_id, dataset_label):
     return pd.concat([remaining, edited_rows], ignore_index=True)
 
 
-def _cross_file_report(candidate, dataset_key, team_name):
+def _cross_dataset_report(candidate, dataset_key, team_name):
     data = {key: _read_dataset(key) for key in [
         "matches",
         "team_stats",
@@ -181,7 +192,7 @@ def _render_data_entry(matches, team_name):
     st.subheader("Match data entry")
     st.caption(
         "Edit rows directly or upload replacement rows for one match. "
-        "Every save creates a local backup first."
+        "Validated changes are saved to PostgreSQL in one transaction."
     )
 
     control_left, control_right = st.columns(2)
@@ -194,6 +205,13 @@ def _render_data_entry(matches, team_name):
     config = DATASET_CONFIG[dataset_label]
     dataset_key = config["key"]
     original = _read_dataset(dataset_key)
+    st.download_button(
+        "Download current dataset",
+        data=original.to_csv(index=False).encode("utf-8"),
+        file_name=f"{dataset_key}.csv",
+        mime="text/csv",
+        icon=":material/download:",
+    )
 
     match_options = matches["MatchID"].drop_duplicates().tolist()
     if dataset_label == "Matches":
@@ -267,19 +285,23 @@ def _render_data_entry(matches, team_name):
         icon=":material/save:",
         disabled=bool(errors),
     ):
-        report = _cross_file_report(candidate, dataset_key, team_name)
+        report = _cross_dataset_report(candidate, dataset_key, team_name)
         review_items = report[report["Status"] == "Review"]
-        file_path = DATA_DIR / DATASETS[dataset_key]
-        backup_path = _atomic_csv_write(
-            candidate[original.columns],
-            file_path,
+        saved_match = (
+            str(edited_rows["MatchID"].iloc[0])
+            if match_id == "New match"
+            else match_id
+        )
+        replace_match_dataset_db(
+            dataset_key,
+            saved_match,
+            edited_rows[original.columns],
         )
         st.cache_data.clear()
         st.session_state["admin_last_save"] = {
             "dataset": dataset_label,
-            "match": match_id,
+            "match": saved_match,
             "reviews": len(review_items),
-            "backup": backup_path.name,
         }
         st.rerun()
 
@@ -287,7 +309,7 @@ def _render_data_entry(matches, team_name):
         for error in errors:
             st.error(error, icon=":material/error:")
     else:
-        report = _cross_file_report(candidate, dataset_key, team_name)
+        report = _cross_dataset_report(candidate, dataset_key, team_name)
         selected_id = (
             edited_rows["MatchID"].iloc[0]
             if match_id == "New match" and not edited_rows.empty
@@ -315,7 +337,6 @@ def _render_data_entry(matches, team_name):
     if last_save:
         st.success(
             f"Saved {last_save['dataset']} for {last_save['match']}. "
-            f"Backup: {last_save['backup']} · "
             f"Review items after save: {last_save['reviews']}."
         )
 
@@ -334,7 +355,9 @@ def _render_user_management(player_data):
         width="stretch",
         num_rows="dynamic",
         key="admin_user_editor",
+        disabled=["UserID"],
         column_config={
+            "UserID": None,
             "Role": st.column_config.SelectboxColumn(
                 options=VALID_ROLES,
                 required=True,
@@ -356,11 +379,11 @@ def _render_user_management(player_data):
         edited_users["Username"] = (
             edited_users["Username"].astype(str).str.strip().str.lower()
         )
-        backup_path = _atomic_csv_write(
+        save_users_db(
             edited_users[users.columns],
-            USERS_FILE,
+            DEFAULT_SHARED_PASSWORD,
         )
-        st.success(f"Users saved. Backup: {backup_path.name}.")
+        st.success("Users saved to PostgreSQL.")
 
     for error in errors:
         st.error(error, icon=":material/error:")

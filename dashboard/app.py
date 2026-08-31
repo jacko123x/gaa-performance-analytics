@@ -15,6 +15,7 @@ import streamlit as st
 # ==========================================================
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(PROJECT_ROOT))
 sys.path.append(str(PROJECT_ROOT / "src"))
 sys.path.append(str(PROJECT_ROOT / "dashboard"))
 
@@ -24,8 +25,6 @@ sys.path.append(str(PROJECT_ROOT / "dashboard"))
 # ==========================================================
 
 from load_data import (
-    DATASETS,
-    DATA_DIR,
     load_matches,
     load_match_summary,
     load_shooting_detail,
@@ -202,30 +201,8 @@ def aggregate_player_matches(players):
 # Load data
 # ==========================================================
 
-def dashboard_data_version():
-    dataset_keys = [
-        "matches",
-        "team_stats",
-        "shooting",
-        "scoring_sources",
-        "kickouts",
-        "turnovers",
-        "player_data",
-    ]
-
-    return tuple(
-        (
-            DATASETS[key],
-            (DATA_DIR / DATASETS[key]).stat().st_mtime_ns,
-        )
-        for key in dataset_keys
-    )
-
-
-@st.cache_data(max_entries=3)
-def load_dashboard_data(data_version):
-    # The version is part of the cache key, so updated CSVs reload.
-    _ = data_version
+@st.cache_data(ttl=30, max_entries=1)
+def load_dashboard_data():
 
     matches = load_matches()
 
@@ -272,9 +249,7 @@ try:
         kickout_data,
         turnover_data,
         player_data,
-    ) = load_dashboard_data(
-        dashboard_data_version()
-    )
+    ) = load_dashboard_data()
 
 except Exception as error:
 
