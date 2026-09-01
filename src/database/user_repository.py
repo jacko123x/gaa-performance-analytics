@@ -4,7 +4,11 @@ from sqlalchemy import select
 from src.database.db import SessionLocal
 from src.database.models import Player, User
 from src.database.security import hash_password
-from src.logging_config import get_logger, log_event
+from src.logging_config import (
+    get_logger,
+    identifier_fingerprint,
+    log_event,
+)
 
 
 USER_COLUMNS = [
@@ -16,6 +20,23 @@ USER_COLUMNS = [
     "Active",
 ]
 LOGGER = get_logger("gaa_analytics.users")
+MIN_PASSWORD_LENGTH = 12
+
+
+def validate_new_password(password: str) -> list[str]:
+    """Return user-safe validation errors for a replacement password."""
+
+    errors = []
+    if len(password) < MIN_PASSWORD_LENGTH:
+        errors.append(
+            f"The new password must contain at least "
+            f"{MIN_PASSWORD_LENGTH} characters."
+        )
+    if password != password.strip():
+        errors.append(
+            "The new password cannot start or end with whitespace."
+        )
+    return errors
 
 
 def load_users_db() -> pd.DataFrame:
@@ -132,3 +153,73 @@ def save_users_db(
         user_count=len(users),
         active_count=int(users["Active"].astype(bool).sum()),
     )
+
+
+def _reset_passwords(users, new_password: str) -> int:
+    errors = validate_new_password(new_password)
+    if errors:
+        raise ValueError(" ".join(errors))
+    if not users:
+        raise ValueError("No active users matched the password reset.")
+
+    for user in users:
+        # Generate a separate salt for every account even when the password
+        # itself is shared.
+        user.password_hash = hash_password(new_password)
+    return len(users)
+
+
+def reset_user_password_db(
+    username: str,
+    new_password: str,
+    *,
+    actor_username="system",
+) -> int:
+    """Reset one active user's password without logging the password."""
+
+    normalized_username = username.strip().lower()
+    with SessionLocal.begin() as session:
+        users = session.scalars(
+            select(User).where(
+                User.username == normalized_username,
+                User.is_active.is_(True),
+            )
+        ).all()
+        reset_count = _reset_passwords(users, new_password)
+
+    log_event(
+        LOGGER,
+        "user_passwords_reset",
+        username=actor_username,
+        reset_scope="single_active_user",
+        user_count=reset_count,
+        target_identifier_hash=identifier_fingerprint(
+            normalized_username
+        ),
+    )
+    return reset_count
+
+
+def reset_active_user_passwords_db(
+    new_password: str,
+    *,
+    actor_username="system",
+) -> int:
+    """Reset every active account to a shared replacement password."""
+
+    with SessionLocal.begin() as session:
+        users = session.scalars(
+            select(User)
+            .where(User.is_active.is_(True))
+            .order_by(User.id)
+        ).all()
+        reset_count = _reset_passwords(users, new_password)
+
+    log_event(
+        LOGGER,
+        "user_passwords_reset",
+        username=actor_username,
+        reset_scope="all_active_users",
+        user_count=reset_count,
+    )
+    return reset_count

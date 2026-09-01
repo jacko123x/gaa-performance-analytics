@@ -34,6 +34,8 @@ immediate retry.
 Set `JSON_LOGS=true` for one compact JSON object per line. Events include:
 
 - `login_succeeded`, `login_failed`, and `logout_succeeded`;
+- `user_passwords_reset`, containing the reset scope and affected count but
+  never the password or password hash;
 - `match_imported` and `match_dataset_replaced`;
 - `match_status_changed`, including publication;
 - `users_saved`;
