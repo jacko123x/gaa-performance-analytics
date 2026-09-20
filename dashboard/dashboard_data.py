@@ -38,7 +38,7 @@ class DashboardData:
 def load_dashboard_data(team_name: str) -> DashboardData:
     """Load published data, calculate metrics, and scope team datasets."""
 
-    matches = load_matches()
+    matches = load_matches(include_scorelines=True)
     team = add_team_metrics(load_match_summary())
     shooting = add_shooting_metrics(load_shooting_detail())
     scoring_sources = load_scoring_sources()

@@ -173,6 +173,59 @@ def _add_team_checks(results, match, team_row, team_name):
         "Calculated as Goals × 3 + Points + TwoPointers × 2.",
     )
 
+    home_score = match["HomeScore"]
+    away_score = match["AwayScore"]
+    if home_score == away_score:
+        calculated_result = "Draw"
+    elif (
+        match["HomeTeam"] == team_name and home_score > away_score
+    ) or (
+        match["AwayTeam"] == team_name and away_score > home_score
+    ):
+        calculated_result = "Win"
+    else:
+        calculated_result = "Loss"
+    recorded_result = str(match["Result"]).strip().title()
+    _add_check(
+        results,
+        match_id,
+        "Score",
+        "Result agrees with final score",
+        recorded_result == calculated_result,
+        calculated_result,
+        recorded_result,
+        "Calculated from the home and away total score values.",
+    )
+
+    score_prefix = (
+        "Home" if match["HomeTeam"] == team_name else "Away"
+    )
+    goals_column = f"{score_prefix}Goals"
+    points_column = f"{score_prefix}Points"
+    if (
+        goals_column in match.index
+        and points_column in match.index
+        and pd.notna(match[goals_column])
+        and pd.notna(match[points_column])
+    ):
+        recorded_scoreline = (
+            f"{int(match[goals_column])}-{int(match[points_column])}"
+        )
+        calculated_scoreline = (
+            f"{int(team_row['Goals'])}-"
+            f"{int(team_row['Points'] + team_row['TwoPointers'] * 2)}"
+        )
+        _add_check(
+            results,
+            match_id,
+            "Score",
+            "Team GAA scoreline matches team stats",
+            recorded_scoreline == calculated_scoreline,
+            recorded_scoreline,
+            calculated_scoreline,
+            "Checks goals and displayed point value, including two-pointers.",
+        )
+
     scoring_events = team_row["Goals"] + team_row["Points"] + team_row["TwoPointers"]
     _add_check(
         results,

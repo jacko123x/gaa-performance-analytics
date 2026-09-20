@@ -23,6 +23,8 @@ def _build_comparison_data(
         "AwayTeam",
         "HomeScore",
         "AwayScore",
+        "HomeScoreline",
+        "AwayScoreline",
         "Result",
     ]
     missing_columns = [
@@ -61,6 +63,34 @@ def _build_comparison_data(
             if row["HomeTeam"] == team_name
             else row["HomeScore"]
         ),
+        axis=1,
+    )
+    comparison["ScoreForDisplay"] = comparison.apply(
+        lambda row: (
+            row["HomeScoreline"]
+            if row["HomeTeam"] == team_name
+            else row["AwayScoreline"]
+        )
+        if pd.notna(
+            row["HomeScoreline"]
+            if row["HomeTeam"] == team_name
+            else row["AwayScoreline"]
+        )
+        else str(int(row["ScoresFor"])),
+        axis=1,
+    )
+    comparison["ScoreAgainstDisplay"] = comparison.apply(
+        lambda row: (
+            row["AwayScoreline"]
+            if row["HomeTeam"] == team_name
+            else row["HomeScoreline"]
+        )
+        if pd.notna(
+            row["AwayScoreline"]
+            if row["HomeTeam"] == team_name
+            else row["HomeScoreline"]
+        )
+        else str(int(row["ScoresAgainst"])),
         axis=1,
     )
     comparison["MatchLabel"] = comparison.apply(
@@ -154,8 +184,8 @@ def _render_match_summary(label, row):
         st.markdown(f"**{row['MatchLabel']}**")
         st.caption(
             f"{row['Result']} | "
-            f"Score {int(row['ScoresFor'])}–"
-            f"{int(row['ScoresAgainst'])} | "
+            f"Score {row['ScoreForDisplay']} – "
+            f"{row['ScoreAgainstDisplay']} | "
             f"Round {row['Round']}"
         )
 

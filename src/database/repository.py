@@ -12,6 +12,7 @@ from src.database.models import (
     TeamMatchStat,
     TurnoverStat,
 )
+from src.scores import format_match_score
 
 
 MATCH_COLUMNS = [
@@ -59,7 +60,11 @@ def _published_only(statement, include_unpublished):
     return statement.where(Match.status == "Published")
 
 
-def load_matches_db(include_unpublished=False) -> pd.DataFrame:
+def load_matches_db(
+    include_unpublished=False,
+    *,
+    include_scorelines=False,
+) -> pd.DataFrame:
     with SessionLocal() as session:
         statement = _published_only(
             select(Match),
@@ -84,10 +89,30 @@ def load_matches_db(include_unpublished=False) -> pd.DataFrame:
                     "HomeScore": row.home_score,
                     "AwayScore": row.away_score,
                     "Result": row.result,
+                    **(
+                        {
+                            "HomeScoreline": format_match_score(
+                                row.home_score,
+                                row.home_goals,
+                                row.home_points,
+                            ) if row.home_goals is not None else None,
+                            "AwayScoreline": format_match_score(
+                                row.away_score,
+                                row.away_goals,
+                                row.away_points,
+                            ) if row.away_goals is not None else None,
+                        }
+                        if include_scorelines
+                        else {}
+                    ),
                 }
                 for row in rows
             ],
-            columns=MATCH_COLUMNS,
+            columns=(
+                [*MATCH_COLUMNS, "HomeScoreline", "AwayScoreline"]
+                if include_scorelines
+                else MATCH_COLUMNS
+            ),
         )
 
         matches["Date"] = pd.to_datetime(

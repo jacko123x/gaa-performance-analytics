@@ -12,8 +12,15 @@ from src.database.repository import (
 )
 
 
-def load_matches(include_unpublished=False) -> pd.DataFrame:
-    return load_matches_db(include_unpublished=include_unpublished)
+def load_matches(
+    include_unpublished=False,
+    *,
+    include_scorelines=False,
+) -> pd.DataFrame:
+    return load_matches_db(
+        include_unpublished=include_unpublished,
+        include_scorelines=include_scorelines,
+    )
 
 
 def load_team_stats(include_unpublished=False) -> pd.DataFrame:

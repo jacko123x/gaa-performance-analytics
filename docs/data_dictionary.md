@@ -43,10 +43,17 @@ MatchID
 | MatchID | Unique match identifier |
 | Date | Match date |
 | Competition | League / Championship |
-| Opponent | Opposition team |
-| Venue | Home or Away |
-| Result | Win / Loss / Draw |
-| Season | Season identifier |
+| Round | Competition round |
+| Venue | Match venue |
+| HomeTeam | Home team name |
+| AwayTeam | Away team name |
+| HomeScore | Total points (`16`) or GAA notation (`0-16`) |
+| AwayScore | Total points (`17`) or GAA notation (`1-14`) |
+| Result | Austin Stacks result: Win / Loss / Draw |
+
+GAA score notation is converted to a numeric total for analytics while its
+goals and points components are retained for display. For example, `1-14`
+is stored as a total of 17 points and displayed as `1-14`.
 
 ---
 

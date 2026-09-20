@@ -115,6 +115,24 @@ def _render_new_match_import(team_name, actor_username):
         return
 
     report = _quality_report(candidates, team_name)
+    imported_match_row = candidates["matches"].loc[
+        candidates["matches"]["MatchID"].astype(str).eq(match_id)
+    ].iloc[0]
+    home_scoreline = (
+        imported_match_row.get("HomeScoreline")
+        or str(int(imported_match_row["HomeScore"]))
+    )
+    away_scoreline = (
+        imported_match_row.get("AwayScoreline")
+        or str(int(imported_match_row["AwayScore"]))
+    )
+    st.info(
+        f"Score recognised: {imported_match_row['HomeTeam']} "
+        f"{home_scoreline} ({int(imported_match_row['HomeScore'])} points) "
+        f"— {imported_match_row['AwayTeam']} {away_scoreline} "
+        f"({int(imported_match_row['AwayScore'])} points).",
+        icon=":material/scoreboard:",
+    )
     review_items = report[
         (report["Status"] == "Review")
         & report["MatchID"].isin(["All", match_id])

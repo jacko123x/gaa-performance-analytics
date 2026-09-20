@@ -251,7 +251,12 @@ def render_match_analysis(
         ]
 
 
-        if not home_team_stats.empty:
+        stored_home_scoreline = match_info.get("HomeScoreline")
+        if pd.notna(stored_home_scoreline):
+
+            home_score_display = str(stored_home_scoreline)
+
+        elif not home_team_stats.empty:
 
             home_goals = int(
                 home_team_stats["Goals"].iloc[0]
@@ -277,7 +282,12 @@ def render_match_analysis(
             )
 
 
-        if not away_team_stats.empty:
+        stored_away_scoreline = match_info.get("AwayScoreline")
+        if pd.notna(stored_away_scoreline):
+
+            away_score_display = str(stored_away_scoreline)
+
+        elif not away_team_stats.empty:
 
             away_goals = int(
                 away_team_stats["Goals"].iloc[0]
@@ -298,9 +308,7 @@ def render_match_analysis(
 
         else:
 
-            away_score_display = (
-                f"0-{int(match_info['AwayScore'])}"
-            )
+            away_score_display = str(int(match_info["AwayScore"]))
 
 
         st.markdown(

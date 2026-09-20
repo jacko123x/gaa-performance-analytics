@@ -99,3 +99,56 @@ def test_invalid_status_transition_is_rejected(sample_bundle):
             "Published",
             username="test_admin",
         )
+
+
+def test_gaa_scorelines_are_stored_with_numeric_totals(sample_bundle):
+    sample_bundle["matches"][["HomeScore", "AwayScore"]] = (
+        sample_bundle["matches"][["HomeScore", "AwayScore"]].astype(object)
+    )
+    sample_bundle["matches"].loc[0, "HomeScore"] = "1-7"
+    sample_bundle["matches"].loc[0, "AwayScore"] = "1-4"
+
+    match_id = import_match_bundle_db(
+        sample_bundle,
+        username="test_admin",
+    )
+
+    matches = load_matches_db(
+        include_unpublished=True,
+        include_scorelines=True,
+    ).set_index("MatchID")
+    match = matches.loc[match_id]
+
+    assert match["HomeScore"] == 10
+    assert match["AwayScore"] == 7
+    assert match["HomeScoreline"] == "1-7"
+    assert match["AwayScoreline"] == "1-4"
+
+    numeric_edit = matches.reset_index()[
+        [
+            "MatchID",
+            "Date",
+            "Competition",
+            "Round",
+            "Venue",
+            "HomeTeam",
+            "AwayTeam",
+            "HomeScore",
+            "AwayScore",
+            "Result",
+        ]
+    ].copy()
+    numeric_edit.loc[0, "Venue"] = "Updated venue"
+    replace_match_dataset_db(
+        "matches",
+        match_id,
+        numeric_edit,
+        username="test_admin",
+    )
+
+    updated = load_matches_db(
+        include_unpublished=True,
+        include_scorelines=True,
+    ).set_index("MatchID").loc[match_id]
+    assert updated["HomeScoreline"] == "1-7"
+    assert updated["AwayScoreline"] == "1-4"

@@ -12,6 +12,7 @@ from load_data import (
     load_turnover_stats,
 )
 from validation import run_data_quality_checks, validate_team_stats
+from src.scores import parse_match_score
 
 
 DATASET_CONFIG = {
@@ -75,6 +76,38 @@ def _normalise_boolean_column(data, column):
     )
 
 
+def _normalise_match_scores(data):
+    errors = []
+    for column, component_prefix in (
+        ("HomeScore", "Home"),
+        ("AwayScore", "Away"),
+    ):
+        totals = []
+        goals = []
+        points = []
+        scorelines = []
+        for row_number, value in enumerate(data[column], start=2):
+            try:
+                parsed = parse_match_score(value, field_name=column)
+            except ValueError as error:
+                errors.append(f"Row {row_number}: {error}.")
+                totals.append(None)
+                goals.append(None)
+                points.append(None)
+                scorelines.append(None)
+                continue
+            totals.append(parsed.total)
+            goals.append(parsed.goals)
+            points.append(parsed.points)
+            scorelines.append(parsed.scoreline)
+
+        data[column] = totals
+        data[f"{component_prefix}Goals"] = goals
+        data[f"{component_prefix}Points"] = points
+        data[f"{component_prefix}Scoreline"] = scorelines
+    return errors
+
+
 def _validate_candidate(candidate, original, config, dataset_label, match_ids):
     errors = []
     if candidate.empty:
@@ -95,7 +128,11 @@ def _validate_candidate(candidate, original, config, dataset_label, match_ids):
         return errors
 
     numeric_columns = set(original.select_dtypes(include="number").columns)
-    for column in numeric_columns:
+    score_columns = {"HomeScore", "AwayScore"}
+    if dataset_label == "Matches":
+        errors.extend(_normalise_match_scores(candidate))
+
+    for column in numeric_columns - score_columns:
         raw_values = candidate[column]
         converted = pd.to_numeric(raw_values, errors="coerce")
         supplied = raw_values.notna() & raw_values.astype(str).str.strip().ne("")
@@ -197,7 +234,8 @@ def _build_import_template_archive(current_data):
         "1. Keep every header unchanged.\n"
         "2. Use one new MatchID in every file.\n"
         "3. The matches file must contain exactly one row.\n"
-        "4. Upload all seven completed files together in Admin.\n"
+        "4. Match scores may be totals (16) or GAA notation (0-16).\n"
+        "5. Upload all seven completed files together in Admin.\n"
     )
 
     with ZipFile(buffer, "w", ZIP_DEFLATED) as archive:

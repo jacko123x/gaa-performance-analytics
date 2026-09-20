@@ -17,6 +17,7 @@ from src.database.models import (
     utc_now,
 )
 from src.logging_config import get_logger, log_event
+from src.scores import parse_match_score
 
 
 MATCH_STATUSES = ("Draft", "Review", "Published")
@@ -132,8 +133,28 @@ def _save_matches(session, rows):
         match.venue = _text(row.get("Venue"))
         match.home_team = _text(row.get("HomeTeam"))
         match.away_team = _text(row.get("AwayTeam"))
-        match.home_score = _integer(row.get("HomeScore"), default=None)
-        match.away_score = _integer(row.get("AwayScore"), default=None)
+        home_score = parse_match_score(
+            row.get("HomeScore"),
+            field_name="HomeScore",
+        )
+        away_score = parse_match_score(
+            row.get("AwayScore"),
+            field_name="AwayScore",
+        )
+        if home_score.scoreline is not None:
+            match.home_goals = home_score.goals
+            match.home_points = home_score.points
+        elif match.home_score != home_score.total:
+            match.home_goals = None
+            match.home_points = None
+        if away_score.scoreline is not None:
+            match.away_goals = away_score.goals
+            match.away_points = away_score.points
+        elif match.away_score != away_score.total:
+            match.away_goals = None
+            match.away_points = None
+        match.home_score = home_score.total
+        match.away_score = away_score.total
         match.result = _text(row.get("Result"))
 
 

@@ -8,6 +8,7 @@ from sqlalchemy import (
     Float,
     ForeignKey,
     Integer,
+    Index,
     JSON,
     String,
     Text,
@@ -40,6 +41,10 @@ class Match(Base):
 
     home_score: Mapped[int | None] = mapped_column(Integer)
     away_score: Mapped[int | None] = mapped_column(Integer)
+    home_goals: Mapped[int | None] = mapped_column(Integer)
+    home_points: Mapped[int | None] = mapped_column(Integer)
+    away_goals: Mapped[int | None] = mapped_column(Integer)
+    away_points: Mapped[int | None] = mapped_column(Integer)
     result: Mapped[str | None] = mapped_column(String(20))
 
     status: Mapped[str] = mapped_column(
@@ -448,3 +453,11 @@ class AuditEvent(Base):
     details: Mapped[dict | None] = mapped_column(JSON)
 
     match = relationship("Match", back_populates="audit_events")
+
+    __table_args__ = (
+        Index(
+            "ix_audit_events_match_created",
+            "match_id",
+            "created_at",
+        ),
+    )
