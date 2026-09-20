@@ -464,6 +464,13 @@ def run_data_quality_checks(
 
     results = []
     team_matches = matches[(matches["HomeTeam"] == team_name) | (matches["AwayTeam"] == team_name)].copy()
+    # Imported CSV dates arrive as strings while database dates are timestamps.
+    # Normalising here keeps this public validation function safe regardless of
+    # which combination of sources supplied the match rows.
+    team_matches["Date"] = pd.to_datetime(
+        team_matches["Date"],
+        errors="coerce",
+    )
     known_match_ids = set(matches["MatchID"].dropna())
     datasets = {
         "Team stats": _team_rows(team_data, team_name),

@@ -8,14 +8,15 @@ from match_formatting import (
     format_pct,
     format_scope_count,
     format_signed,
+    render_metric_tiles,
 )
 
 
 def render_overview(match_team, match_turnovers, match_kickouts, show_averages):
     st.header(
-        "Selected Match Averages"
+        "Selected match averages"
         if show_averages
-        else "Match Overview"
+        else "Match overview"
     )
 
     if match_team.empty:
@@ -80,81 +81,69 @@ def render_overview(match_team, match_turnovers, match_kickouts, show_averages):
         )
 
 
-        col1, col2, col3, col4 = st.columns(4)
-
-        col1.metric(
-            "Avg Attacks" if show_averages else "Attacks",
-            format_scope_count(
-                row["Attacks"],
-                show_averages,
-            ),
+        turnover_tone = (
+            "green"
+            if turnover_diff is not None and turnover_diff >= 0
+            else "red"
+        )
+        render_metric_tiles(
+            [
+                {
+                    "label": "Avg attacks" if show_averages else "Attacks",
+                    "value": format_scope_count(row["Attacks"], show_averages),
+                    "tone": "purple",
+                },
+                {
+                    "label": "Attack → shot",
+                    "value": format_pct(row["AttackToShotPct"]),
+                    "tone": "blue",
+                },
+                {
+                    "label": "Attack → score",
+                    "value": format_pct(row["AttackToScorePct"]),
+                    "tone": "green",
+                },
+                {
+                    "label": "Shot conversion",
+                    "value": format_pct(row["ShotConversionPct"]),
+                    "tone": "amber",
+                },
+                {
+                    "label": (
+                        "Avg empty attacks"
+                        if show_averages
+                        else "Empty attacks"
+                    ),
+                    "value": format_scope_count(
+                        row["EmptyAttacks"], show_averages
+                    ),
+                    "tone": "red",
+                },
+                {
+                    "label": "Own KO retention",
+                    "value": format_pct(own_ko_pct),
+                    "tone": "green",
+                },
+                {
+                    "label": "Opposition KOs won",
+                    "value": format_pct(opp_ko_pct),
+                    "tone": "blue",
+                },
+                {
+                    "label": "Turnover differential",
+                    "value": (
+                        format_signed(turnover_diff)
+                        if turnover_diff is not None
+                        else "-"
+                    ),
+                    "tone": turnover_tone,
+                },
+            ],
+            columns_per_row=4,
+            compact=True,
         )
 
-        col2.metric(
-            "Attack → Shot",
-            format_pct(
-                row["AttackToShotPct"]
-            ),
-        )
-
-        col3.metric(
-            "Attack → Score",
-            format_pct(
-                row["AttackToScorePct"]
-            ),
-        )
-
-        col4.metric(
-            "Shot Conversion",
-            format_pct(
-                row["ShotConversionPct"]
-            ),
-        )
-
-
-        col5, col6, col7, col8 = st.columns(4)
-
-        col5.metric(
-            (
-                "Avg Empty Attacks"
-                if show_averages
-                else "Empty Attacks"
-            ),
-            format_scope_count(
-                row["EmptyAttacks"],
-                show_averages,
-            ),
-        )
-
-        col6.metric(
-            "Own KO Retention",
-            format_pct(
-                own_ko_pct
-            ),
-        )
-
-        col7.metric(
-            "Opp KO Won",
-            format_pct(
-                opp_ko_pct
-            ),
-        )
-
-        col8.metric(
-            "Turnover Diff",
-            (
-                format_signed(
-                    turnover_diff
-                )
-                if turnover_diff is not None
-                else "-"
-            ),
-        )
-
-
-        st.divider()
-
-        st.subheader("Match Performance")
+        st.markdown("#### Attacking output")
 
         overview_metrics = pd.DataFrame(
             {
@@ -177,7 +166,6 @@ def render_overview(match_team, match_turnovers, match_kickouts, show_averages):
             overview_metrics,
             x="Metric",
             y="Value",
-            title="Attacking Output",
             color_discrete_sequence=[AMBER],
         )
 

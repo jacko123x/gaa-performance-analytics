@@ -1,11 +1,24 @@
+from html import escape
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from match_formatting import render_metric_tiles
 from player_championship import build_player_championship_summary
 
 
 AMBER = "#F59E0B"
+
+METRIC_STYLE = {
+    "Possessions": ("purple", "#A78BFA"),
+    "Pass accuracy": ("blue", "#60A5FA"),
+    "Turnovers won": ("green", "#4ADE80"),
+    "Breaking balls": ("green", "#4ADE80"),
+    "Kickouts won": ("green", "#4ADE80"),
+    "Assists": ("amber", "#FBBF24"),
+    "Score contribution": ("amber", "#FBBF24"),
+}
 
 
 METRICS = {
@@ -95,35 +108,78 @@ def _render_category_leaders(
     minimum_minutes,
     minimum_passes,
 ):
-    st.subheader("Category leaders")
-    with st.container(horizontal=True):
-        for metric_label in METRICS:
-            leaderboard, metric_column = build_squad_leaderboard(
-                summary,
+    st.markdown("#### Category leaders")
+    tiles = []
+    for metric_label in METRICS:
+        leaderboard, metric_column = build_squad_leaderboard(
+            summary,
+            metric_label,
+            ranking_mode,
+            minimum_minutes,
+            minimum_passes,
+        )
+        if leaderboard.empty:
+            leader_name = "No qualifier"
+            leader_value = "-"
+        else:
+            leader = leaderboard.iloc[0]
+            leader_name = leader["PlayerName"]
+            leader_value = _format_ranking_value(
+                leader[metric_column],
                 metric_label,
                 ranking_mode,
-                minimum_minutes,
-                minimum_passes,
             )
-            if leaderboard.empty:
-                leader_name = "No qualifier"
-                leader_value = "-"
-            else:
-                leader = leaderboard.iloc[0]
-                leader_name = leader["PlayerName"]
-                leader_value = _format_ranking_value(
-                    leader[metric_column],
-                    metric_label,
-                    ranking_mode,
-                )
 
-            st.metric(
-                metric_label,
-                leader_value,
-                delta=leader_name,
-                delta_color="off",
-                border=True,
-            )
+        tiles.append(
+            {
+                "label": metric_label,
+                "value": leader_value,
+                "detail": leader_name,
+                "tone": METRIC_STYLE[metric_label][0],
+            }
+        )
+    render_metric_tiles(tiles, columns_per_row=4, compact=True)
+
+
+def _podium_card(player, value, metric_label, ranking_mode):
+    podium = {
+        1: ("#FBBF24", "rgba(245, 158, 11, 0.12)", "Leader"),
+        2: ("#CBD5E1", "rgba(148, 163, 184, 0.10)", "Second"),
+        3: ("#FB923C", "rgba(249, 115, 22, 0.10)", "Third"),
+    }
+    accent, background, place = podium[player.Rank]
+    formatted_value = _format_ranking_value(
+        value,
+        metric_label,
+        ranking_mode,
+    )
+    st.markdown(
+        f"""
+<div style="
+    min-height:112px;
+    padding:0.85rem 0.95rem;
+    border:1px solid {accent}55;
+    border-top:4px solid {accent};
+    border-radius:0.7rem;
+    background:linear-gradient(120deg, {background}, rgba(15, 23, 42, 0.02));
+    box-shadow:0 3px 12px rgba(0, 0, 0, 0.10);
+">
+    <div style="display:flex;justify-content:space-between;gap:0.5rem;">
+        <span style="font-size:0.78rem;font-weight:720;">
+            #{player.Rank} {escape(str(player.PlayerName))}
+        </span>
+        <span style="font-size:0.62rem;font-weight:760;text-transform:uppercase;
+            letter-spacing:0.055em;color:{accent};">{place}</span>
+    </div>
+    <div style="font-size:1.65rem;font-weight:780;color:{accent};
+        line-height:1.1;margin-top:0.4rem;">{escape(formatted_value)}</div>
+    <div style="font-size:0.69rem;opacity:0.60;margin-top:0.3rem;">
+        {int(player.MinutesPlayed)} minutes · {int(player.Games)} games
+    </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
 
 def _render_top_three(
@@ -133,21 +189,14 @@ def _render_top_three(
     ranking_mode,
 ):
     top_three = leaderboard.head(3)
-    with st.container(horizontal=True):
-        for player in top_three.itertuples():
-            st.metric(
-                f"#{player.Rank} {player.PlayerName}",
-                _format_ranking_value(
-                    getattr(player, metric_column),
-                    metric_label,
-                    ranking_mode,
-                ),
-                delta=(
-                    f"{int(player.MinutesPlayed)} minutes | "
-                    f"{int(player.Games)} games"
-                ),
-                delta_color="off",
-                border=True,
+    columns = st.columns(3, gap="small")
+    for column, player in zip(columns, top_three.itertuples()):
+        with column:
+            _podium_card(
+                player,
+                getattr(player, metric_column),
+                metric_label,
+                ranking_mode,
             )
 
 
@@ -176,8 +225,7 @@ def _render_leaderboard_chart(
         x=metric_column,
         y="PlayerName",
         orientation="h",
-        title=display_label,
-        color_discrete_sequence=[AMBER],
+        color_discrete_sequence=[METRIC_STYLE[metric_label][1]],
         hover_data={
             "Position": True,
             "Games": True,
@@ -281,44 +329,52 @@ def render_squad_leaderboards(player_data):
     max_minutes = max(1, int(summary["MinutesPlayed"].max()))
     max_passes = max(1, int(summary["TotalPasses"].max()))
 
-    ranking_mode = st.segmented_control(
-        "Ranking basis",
-        options=["Championship totals", "Per 60"],
-        default="Championship totals",
-        key="squad_leaderboard_basis",
-    )
-
-    filter_left, filter_right = st.columns(2)
-    with filter_left:
-        metric_label = st.selectbox(
-            "Leaderboard metric",
-            options=list(METRICS),
-            key="championship_leaderboard_metric",
-            help=(
-                "Score contribution counts successful scoring actions "
-                "plus assists."
-            ),
-        )
-    with filter_right:
-        if ranking_mode == "Per 60":
-            minimum_minutes = st.slider(
-                "Minimum championship minutes",
-                min_value=1,
-                max_value=max_minutes,
-                value=min(30, max_minutes),
-                key="leaderboard_minimum_minutes",
+    st.markdown("#### Ranking setup")
+    with st.container(border=True):
+        filter_left, filter_right = st.columns(2, gap="large")
+        with filter_left:
+            ranking_mode = st.segmented_control(
+                "Ranking basis",
+                options=["Championship totals", "Per 60"],
+                default="Championship totals",
+                key="squad_leaderboard_basis",
+                width="stretch",
             )
+        with filter_right:
+            metric_label = st.selectbox(
+                "Leaderboard metric",
+                options=list(METRICS),
+                key="championship_leaderboard_metric",
+                help=(
+                    "Score contribution counts successful scoring actions "
+                    "plus assists."
+                ),
+            )
+
+        qualifier_left, qualifier_right = st.columns(2, gap="large")
+        if ranking_mode == "Per 60":
+            with qualifier_left:
+                minimum_minutes = st.slider(
+                    "Minimum championship minutes",
+                    min_value=1,
+                    max_value=max_minutes,
+                    value=min(30, max_minutes),
+                    key="leaderboard_minimum_minutes",
+                )
         else:
             minimum_minutes = 0
 
-        minimum_passes = st.slider(
-            "Minimum passes for accuracy",
-            min_value=1,
-            max_value=max_passes,
-            value=min(10, max_passes),
-            key="leaderboard_minimum_passes",
-            help="Only affects the pass-accuracy ranking",
-        )
+        if metric_label == "Pass accuracy":
+            with qualifier_right:
+                minimum_passes = st.slider(
+                    "Minimum passes for accuracy",
+                    min_value=1,
+                    max_value=max_passes,
+                    value=min(10, max_passes),
+                    key="leaderboard_minimum_passes",
+                )
+        else:
+            minimum_passes = min(10, max_passes)
 
     _render_category_leaders(
         summary,
@@ -327,7 +383,7 @@ def render_squad_leaderboards(player_data):
         minimum_passes,
     )
 
-    st.header(f"{metric_label} ranking")
+    st.subheader(f"{metric_label} ranking")
     if ranking_mode == "Per 60":
         qualification = (
             f"Players must have played at least {minimum_minutes} minutes"

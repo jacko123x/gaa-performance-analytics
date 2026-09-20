@@ -131,6 +131,18 @@ def _validate_candidate(candidate, original, config, dataset_label, match_ids):
     score_columns = {"HomeScore", "AwayScore"}
     if dataset_label == "Matches":
         errors.extend(_normalise_match_scores(candidate))
+        supplied_dates = (
+            candidate["Date"].notna()
+            & candidate["Date"].astype(str).str.strip().ne("")
+        )
+        converted_dates = pd.to_datetime(
+            candidate["Date"],
+            errors="coerce",
+        )
+        if (supplied_dates & converted_dates.isna()).any():
+            errors.append("Column Date must contain valid dates.")
+        else:
+            candidate["Date"] = converted_dates
 
     for column in numeric_columns - score_columns:
         raw_values = candidate[column]

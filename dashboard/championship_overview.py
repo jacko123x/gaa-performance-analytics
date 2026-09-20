@@ -13,26 +13,22 @@ GREY = "#6B7280"
 KPI_PALETTE = {
     "strong": {
         "accent": "#22C55E",
-        "background": "rgba(34, 197, 94, 0.14)",
-        "badge": "rgba(34, 197, 94, 0.24)",
+        "background": "rgba(34, 197, 94, 0.065)",
         "label": "Strong",
     },
     "middle": {
         "accent": "#F59E0B",
-        "background": "rgba(245, 158, 11, 0.14)",
-        "badge": "rgba(245, 158, 11, 0.24)",
+        "background": "rgba(245, 158, 11, 0.065)",
         "label": "Middle",
     },
     "review": {
         "accent": "#EF4444",
-        "background": "rgba(239, 68, 68, 0.14)",
-        "badge": "rgba(239, 68, 68, 0.24)",
+        "background": "rgba(239, 68, 68, 0.065)",
         "label": "Review",
     },
     "neutral": {
         "accent": "#3B82F6",
-        "background": "rgba(59, 130, 246, 0.12)",
-        "badge": "rgba(59, 130, 246, 0.22)",
+        "background": "rgba(59, 130, 246, 0.055)",
         "label": "Context",
     },
 }
@@ -66,7 +62,7 @@ def _performance_band(
 def _metric_card(label, value, band, note=None):
     palette = KPI_PALETTE[band]
     note_html = (
-        f'<div style="font-size:0.75rem;opacity:0.68;margin-top:0.35rem;">'
+        f'<div style="font-size:0.68rem;opacity:0.58;margin-top:0.18rem;">'
         f"{escape(note)}</div>"
         if note
         else ""
@@ -74,32 +70,26 @@ def _metric_card(label, value, band, note=None):
     st.markdown(
         f"""
 <div style="
-    min-height:132px;
-    padding:1rem 1.05rem;
-    border:1px solid {palette['accent']}66;
-    border-left:5px solid {palette['accent']};
-    border-radius:0.75rem;
+    min-height:88px;
+    padding:0.68rem 0.82rem 0.62rem;
+    border:1px solid rgba(148, 163, 184, 0.20);
+    border-top:3px solid {palette['accent']};
+    border-radius:0.55rem;
     background:{palette['background']};
-    box-shadow:0 5px 18px rgba(0, 0, 0, 0.10);
+    box-shadow:0 2px 8px rgba(0, 0, 0, 0.08);
 ">
-    <div style="font-size:0.82rem;font-weight:650;opacity:0.78;">
-        {escape(label)}
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:0.5rem;">
+        <span style="font-size:0.74rem;font-weight:650;opacity:0.72;">
+            {escape(label)}
+        </span>
+        <span style="font-size:0.60rem;font-weight:750;letter-spacing:0.055em;
+            text-transform:uppercase;color:{palette['accent']};white-space:nowrap;">
+            ●&nbsp; {palette['label']}
+        </span>
     </div>
-    <div style="font-size:1.8rem;font-weight:750;line-height:1.2;margin-top:0.3rem;">
+    <div style="font-size:1.48rem;font-weight:750;line-height:1.1;margin-top:0.28rem;">
         {escape(str(value))}
     </div>
-    <span style="
-        display:inline-block;
-        margin-top:0.55rem;
-        padding:0.14rem 0.48rem;
-        border-radius:999px;
-        background:{palette['badge']};
-        color:{palette['accent']};
-        font-size:0.68rem;
-        font-weight:750;
-        letter-spacing:0.04em;
-        text-transform:uppercase;
-    ">{palette['label']}</span>
     {note_html}
 </div>
 """,
@@ -110,7 +100,7 @@ def _metric_card(label, value, band, note=None):
 def _render_metric_grid(cards, columns_per_row=4):
     for start in range(0, len(cards), columns_per_row):
         row_cards = cards[start:start + columns_per_row]
-        columns = st.columns(len(row_cards))
+        columns = st.columns(columns_per_row, gap="small")
         for column, card in zip(columns, row_cards):
             with column:
                 _metric_card(**card)
@@ -316,7 +306,7 @@ def _render_record(
         0.0,
     )
 
-    st.subheader("Championship pulse")
+    st.markdown("#### Championship pulse")
     _render_metric_grid(
         [
             {
@@ -332,16 +322,12 @@ def _render_record(
                 "note": f"{points_per_game:.1f} points per game",
             },
             {
-                "label": "Avg score for",
-                "value": f"{average_scores_for:.1f}",
+                "label": "Avg score (for – against)",
+                "value": (
+                    f"{average_scores_for:.1f} – "
+                    f"{average_scores_against:.1f}"
+                ),
                 "band": scoring_band,
-                "note": "Compared with score against",
-            },
-            {
-                "label": "Avg score against",
-                "value": f"{average_scores_against:.1f}",
-                "band": scoring_band,
-                "note": "Lower than score for is positive",
             },
             {
                 "label": "Avg scoring differential",
@@ -353,10 +339,10 @@ def _render_record(
                 "note": "For minus against",
             },
         ],
-        columns_per_row=3,
+        columns_per_row=4,
     )
 
-    st.subheader("Performance pulse")
+    st.markdown("#### Performance pulse")
     _render_metric_grid(
         [
             {
@@ -420,22 +406,52 @@ def _render_record(
         ]
     )
 
+    st.markdown("##### How to read the performance colours")
+    legend_columns = st.columns(3, gap="small")
+    with legend_columns[0]:
+        st.markdown(":green-badge[Strong]")
+        st.caption("Meeting or exceeding the target benchmark.")
+    with legend_columns[1]:
+        st.markdown(":orange-badge[Middle]")
+        st.caption("A competitive result with room to improve.")
+    with legend_columns[2]:
+        st.markdown(":red-badge[Review]")
+        st.caption("Below the benchmark and worth closer analysis.")
+
     st.caption(
-        "Green = strong, amber = middle band, red = review. "
-        "Rates are arithmetic averages of match-level rates."
+        "How season rates are calculated: each match percentage is calculated "
+        "first, then those percentages are averaged. Every match has equal "
+        "weight, regardless of the number of attempts."
     )
-    with st.expander("Performance colour benchmarks"):
-        st.markdown(
-            """
-- **Shot conversion:** strong ≥ 65%, middle ≥ 50%.
-- **Attack → shot:** strong ≥ 75%, middle ≥ 65%.
-- **Attack → score:** strong ≥ 50%, middle ≥ 40%.
-- **Own kickout retention:** strong ≥ 70%, middle ≥ 60%.
-- **Opposition kickouts won:** strong ≥ 35%, middle ≥ 25%.
-- **Turnover differential:** strong ≥ +1, middle ≥ 0.
-- **Frees conceded:** strong ≤ 5, middle ≤ 8.
-- **Attacks:** strong ≥ 30, middle ≥ 25 per match.
-"""
+
+    with st.expander(
+        "View benchmark thresholds",
+        icon=":material/target:",
+    ):
+        st.caption(
+            "Higher is better for every measure except frees conceded, where "
+            "a lower number is better."
+        )
+        benchmarks = pd.DataFrame(
+            [
+                ["Shot conversion", "65% or more", "50%–64.9%", "Below 50%"],
+                ["Attack → shot", "75% or more", "65%–74.9%", "Below 65%"],
+                ["Attack → score", "50% or more", "40%–49.9%", "Below 40%"],
+                ["Own KO retention", "70% or more", "60%–69.9%", "Below 60%"],
+                ["Opposition KOs won", "35% or more", "25%–34.9%", "Below 25%"],
+                ["Turnover differential", "+1.0 or more", "0.0 to +0.9", "Below 0"],
+                ["Frees conceded", "5 or fewer", "More than 5 to 8", "More than 8"],
+                ["Attacks per match", "30 or more", "25–29.9", "Below 25"],
+            ],
+            columns=["Measure", "Strong", "Middle", "Review"],
+        )
+        st.dataframe(
+            benchmarks,
+            hide_index=True,
+            width="stretch",
+            column_config={
+                "Measure": st.column_config.TextColumn(pinned=True),
+            },
         )
 
 

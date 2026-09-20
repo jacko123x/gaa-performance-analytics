@@ -1,13 +1,21 @@
 
+from html import escape
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from match_formatting import AMBER, DARK, format_pct, format_signed
+from match_formatting import (
+    AMBER,
+    DARK,
+    format_pct,
+    format_signed,
+    render_metric_tiles,
+)
 
 
 def render_players(match_players, show_averages):
-    st.header("Player Performance")
+    st.header("Player performance")
 
     if match_players.empty:
 
@@ -28,7 +36,7 @@ def render_players(match_players, show_averages):
 
 
         selected_player = st.selectbox(
-            "Select Player",
+            "Select player",
             options=player_options,
         )
 
@@ -43,13 +51,8 @@ def render_players(match_players, show_averages):
         # Player header
         # --------------------------------------------------
 
-        st.subheader(
-            f"{selected_player} "
-            f"— {player_row['Position']}"
-        )
-
         if show_averages:
-            st.caption(
+            player_context = (
                 f"Squad #{int(player_row['SquadNumber'])} | "
                 f"{int(player_row['Appearances'])} appearances | "
                 f"{int(player_row['Starts'])} starts | "
@@ -62,99 +65,91 @@ def render_players(match_players, show_averages):
                 else "Substitute"
             )
 
-            st.caption(
+            player_context = (
                 f"Squad #{int(player_row['SquadNumber'])} | "
                 f"{player_status} | "
                 f"{int(player_row['MinutesPlayed'])} minutes"
             )
+
+        player_name_html = escape(str(selected_player))
+        position_html = escape(str(player_row["Position"]))
+        context_html = escape(player_context)
+        st.markdown(
+            f"""
+<div style="padding:0.75rem 0.9rem;margin:0.4rem 0 0.7rem;
+    border:1px solid rgba(96,165,250,0.26);border-radius:0.65rem;
+    background:linear-gradient(100deg,rgba(59,130,246,0.15),
+        rgba(245,158,11,0.05));">
+    <div style="font-size:1.15rem;font-weight:750;">
+        {player_name_html} <span style="color:#60A5FA;">· {position_html}</span>
+    </div>
+    <div style="font-size:0.72rem;opacity:0.64;margin-top:0.25rem;">
+        {context_html}
+    </div>
+</div>
+""",
+            unsafe_allow_html=True,
+        )
 
 
         # --------------------------------------------------
         # Main KPI row
         # --------------------------------------------------
 
-        col1, col2, col3, col4 = st.columns(4)
-
-        col1.metric(
-            "Possessions",
-            int(
-                player_row["Possessions"]
-            ),
+        turnover_diff = player_row["TurnoverDifferential"]
+        render_metric_tiles(
+            [
+                {
+                    "label": "Possessions",
+                    "value": int(player_row["Possessions"]),
+                    "tone": "purple",
+                },
+                {
+                    "label": "Total passes",
+                    "value": int(player_row["TotalPasses"]),
+                    "tone": "blue",
+                },
+                {
+                    "label": "Pass accuracy",
+                    "value": format_pct(player_row["PassAccuracyPct"]),
+                    "tone": "blue",
+                },
+                {
+                    "label": "Turnover differential",
+                    "value": format_signed(turnover_diff),
+                    "tone": "green" if turnover_diff >= 0 else "red",
+                },
+                {
+                    "label": "Breaking balls won",
+                    "value": int(player_row["BreakingBallsWon"]),
+                    "tone": "green",
+                },
+                {
+                    "label": "Kickouts won",
+                    "value": int(player_row["KickoutsWon"]),
+                    "tone": "green",
+                },
+                {
+                    "label": "Assists",
+                    "value": int(player_row["Assists"]),
+                    "tone": "amber",
+                },
+                {
+                    "label": "Score value",
+                    "value": int(player_row["TotalScoreValue"]),
+                    "tone": "amber",
+                },
+            ],
+            columns_per_row=4,
+            compact=True,
         )
-
-        col2.metric(
-            "Total Passes",
-            int(
-                player_row["TotalPasses"]
-            ),
-        )
-
-        col3.metric(
-            "Pass Accuracy",
-            format_pct(
-                player_row[
-                    "PassAccuracyPct"
-                ]
-            ),
-        )
-
-        col4.metric(
-            "Turnover Diff",
-            format_signed(
-                player_row[
-                    "TurnoverDifferential"
-                ]
-            ),
-        )
-
-
-        col5, col6, col7, col8 = st.columns(4)
-
-        col5.metric(
-            "Breaking Balls Won",
-            int(
-                player_row[
-                    "BreakingBallsWon"
-                ]
-            ),
-        )
-
-        col6.metric(
-            "Kickouts Won",
-            int(
-                player_row[
-                    "KickoutsWon"
-                ]
-            ),
-        )
-
-        col7.metric(
-            "Assists",
-            int(
-                player_row["Assists"]
-            ),
-        )
-
-        col8.metric(
-            "Score Value",
-            int(
-                player_row[
-                    "TotalScoreValue"
-                ]
-            ),
-        )
-
-
-        st.divider()
 
 
         # --------------------------------------------------
         # Passing profile
         # --------------------------------------------------
 
-        st.subheader(
-            "Passing Profile"
-        )
+        st.markdown("#### Passing profile")
 
         pass_col1, pass_col2 = st.columns(2)
 

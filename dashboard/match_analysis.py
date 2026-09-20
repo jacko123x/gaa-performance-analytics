@@ -1,3 +1,5 @@
+from html import escape
+
 import pandas as pd
 import streamlit as st
 
@@ -232,11 +234,24 @@ def render_match_analysis(
     # ==========================================================
 
     if show_averages:
-        st.subheader("All selected matches")
-        st.caption(
-            f"{len(selected_match_ids)} matches selected | "
-            "Team figures are per-match averages. "
-            "Player figures are totals across the selection."
+        st.markdown(
+            f"""
+<div style="
+    margin:0.4rem 0 0.8rem;
+    padding:0.9rem 1rem;
+    border:1px solid rgba(96, 165, 250, 0.28);
+    border-radius:0.7rem;
+    background:linear-gradient(100deg, rgba(59, 130, 246, 0.16),
+        rgba(139, 92, 246, 0.06));
+">
+    <div style="font-size:1.2rem;font-weight:760;">All championship matches</div>
+    <div style="font-size:0.76rem;opacity:0.65;margin-top:0.28rem;">
+        {len(selected_match_ids)} matches · Team figures are per-match averages
+        · Player figures are selection totals
+    </div>
+</div>
+""",
+            unsafe_allow_html=True,
         )
     else:
         home_team = match_info["HomeTeam"]
@@ -311,40 +326,41 @@ def render_match_analysis(
             away_score_display = str(int(match_info["AwayScore"]))
 
 
+        metadata = (
+            f"{match_info['Competition']} · Round {match_info['Round']} · "
+            f"{match_info['Venue']} · "
+            f"{match_info['Date'].strftime('%d %B %Y')}"
+        )
         st.markdown(
             f"""
-        <div style="
-            text-align:center;
-            margin-top:10px;
-            margin-bottom:5px;
-        ">
-            <div style="
-                font-size:32px;
-                font-weight:700;
-            ">
-                {home_team}
-                &nbsp;
-                <span style="color:{AMBER};">
-                    {home_score_display}
-                </span>
-                &nbsp;&nbsp;—&nbsp;&nbsp;
-                <span style="color:{AMBER};">
-                    {away_score_display}
-                </span>
-                &nbsp;
-                {away_team}
-            </div>
-        </div>
-            """,
+<div style="
+    margin:0.4rem 0 0.8rem;
+    padding:1rem 1.1rem 0.85rem;
+    text-align:center;
+    border:1px solid rgba(245, 158, 11, 0.28);
+    border-radius:0.75rem;
+    background:linear-gradient(110deg, rgba(59, 130, 246, 0.10),
+        rgba(245, 158, 11, 0.12));
+    box-shadow:0 3px 12px rgba(0, 0, 0, 0.09);
+">
+    <div style="font-size:0.68rem;font-weight:740;letter-spacing:0.07em;
+        text-transform:uppercase;color:{AMBER};">
+        {escape(str(match_info['Result']))}
+    </div>
+    <div style="font-size:1.55rem;font-weight:780;line-height:1.2;
+        margin-top:0.34rem;">
+        {escape(str(home_team))}
+        <span style="color:{AMBER};margin:0 0.45rem;">
+            {escape(home_score_display)} — {escape(away_score_display)}
+        </span>
+        {escape(str(away_team))}
+    </div>
+    <div style="font-size:0.72rem;opacity:0.62;margin-top:0.42rem;">
+        {escape(metadata)}
+    </div>
+</div>
+""",
             unsafe_allow_html=True,
-        )
-
-
-        st.caption(
-            f"{match_info['Competition']} | "
-            f"Round {match_info['Round']} | "
-            f"{match_info['Venue']} | "
-            f"{match_info['Date'].strftime('%d %B %Y')}"
         )
 
 
@@ -368,9 +384,9 @@ def render_match_analysis(
             "Shooting",
             "Kickouts",
             "Turnovers",
-            "Scoring Sources",
+            "Scoring sources",
             "Players",
-            "Squad Leaders",
+            "Squad leaders",
         ]
     )
 

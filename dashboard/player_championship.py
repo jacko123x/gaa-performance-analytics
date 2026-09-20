@@ -1,14 +1,16 @@
+from html import escape
+
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
+from match_formatting import render_metric_tiles
 from metrics import add_player_metrics
 
 
 AMBER = "#F59E0B"
 DARK = "#1F2937"
 GREY = "#6B7280"
-
 
 SUMMED_COLUMNS = [
     "MinutesPlayed",
@@ -129,85 +131,109 @@ def _build_player_trends(player_data, player_name):
     return trends
 
 
-def _render_profile_metrics(player):
-    with st.container(horizontal=True):
-        st.metric(
-            "Games / starts",
-            f"{int(player['Games'])} / {int(player['Starts'])}",
-            border=True,
-        )
-        st.metric(
-            "Minutes",
-            f"{int(player['MinutesPlayed'])}",
-            border=True,
-        )
-        st.metric(
-            "Possessions",
-            f"{int(player['Possessions'])}",
-            border=True,
-        )
-        st.metric(
-            "Pass accuracy",
-            _format_pct(player["PassAccuracyPct"]),
-            border=True,
-        )
-        st.metric(
-            "Turnovers won / lost",
-            (
-                f"{int(player['TurnoversWon'])} / "
-                f"{int(player['TurnoversLost'])}"
-            ),
-            border=True,
-        )
+def _render_player_identity(player, selected_player):
+    captain = " · Captain" if player["Captain"] else ""
+    st.markdown(
+        f"""
+<div style="
+    margin:0.55rem 0 0.8rem;
+    padding:0.85rem 1rem;
+    border:1px solid rgba(96, 165, 250, 0.26);
+    border-radius:0.7rem;
+    background:linear-gradient(100deg, rgba(59, 130, 246, 0.16),
+        rgba(245, 158, 11, 0.055));
+">
+    <div style="font-size:1.28rem;font-weight:760;line-height:1.2;">
+        {escape(selected_player)}
+        <span style="color:#60A5FA;"> · {escape(str(player['Position']))}</span>
+    </div>
+    <div style="font-size:0.76rem;opacity:0.66;margin-top:0.28rem;">
+        Squad #{int(player['SquadNumber'])}{captain} · Championship totals
+    </div>
+</div>
+""",
+        unsafe_allow_html=True,
+    )
 
-    with st.container(horizontal=True):
-        st.metric(
-            "Breaking balls",
-            f"{int(player['BreakingBallsWon'])}",
-            border=True,
-        )
-        st.metric(
-            "Kickouts won",
-            f"{int(player['KickoutsWon'])}",
-            border=True,
-        )
-        st.metric(
-            "Assists",
-            f"{int(player['Assists'])}",
-            border=True,
-        )
-        st.metric(
-            "Scores",
-            f"{int(player['Scores'])}",
-            border=True,
-        )
-        st.metric(
-            "Score value",
-            f"{int(player['TotalScoreValue'])}",
-            border=True,
-            help="Points value including goals and two-pointers",
-        )
+
+def _render_profile_metrics(player):
+    st.markdown("#### Championship totals")
+    render_metric_tiles(
+        [
+            {
+                "label": "Availability",
+                "value": (
+                    f"{int(player['Games'])} games · "
+                    f"{int(player['Starts'])} starts"
+                ),
+                "tone": "blue",
+            },
+            {
+                "label": "Workload",
+                "value": f"{int(player['MinutesPlayed'])} min",
+                "detail": f"{int(player['Possessions'])} possessions",
+                "tone": "purple",
+            },
+            {
+                "label": "Distribution",
+                "value": _format_pct(player["PassAccuracyPct"]),
+                "detail": "Pass accuracy",
+                "tone": "blue",
+            },
+            {
+                "label": "Possession gains",
+                "value": (
+                    f"{int(player['TurnoversWon'])} TO · "
+                    f"{int(player['BreakingBallsWon'])} breaks · "
+                    f"{int(player['KickoutsWon'])} KOs"
+                ),
+                "detail": (
+                    f"{int(player['TurnoversLost'])} turnovers lost"
+                ),
+                "tone": "green",
+            },
+            {
+                "label": "Chance creation",
+                "value": f"{int(player['Assists'])} assists",
+                "tone": "amber",
+            },
+            {
+                "label": "Scoring",
+                "value": f"{int(player['Scores'])} scores",
+                "detail": (
+                    f"{int(player['TotalScoreValue'])} total score value"
+                ),
+                "tone": "amber",
+            },
+        ],
+        columns_per_row=3,
+    )
 
 
 def _render_per_60_metrics(player):
-    st.subheader("Output per 60 minutes")
-    with st.container(horizontal=True):
-        definitions = [
-            ("Possessions", "PossessionsPer60"),
-            ("Passes", "PassesPer60"),
-            ("Turnovers won", "TurnoversWonPer60"),
-            ("Turnovers lost", "TurnoversLostPer60"),
-            ("Breaking balls", "BreakingBallsWonPer60"),
-            ("Kickouts won", "KickoutsWonPer60"),
-            ("Assists", "AssistsPer60"),
-            ("Score value", "ScoreValuePer60"),
-        ]
-        for label, column in definitions:
-            st.metric(
-                label,
-                _format_per_60(player[column]),
-                border=True,
-            )
+    st.markdown("#### Output per 60 minutes")
+    definitions = [
+        ("Possessions", "PossessionsPer60", "purple"),
+        ("Passes", "PassesPer60", "blue"),
+        ("Turnovers won", "TurnoversWonPer60", "green"),
+        ("Turnovers lost", "TurnoversLostPer60", "red"),
+        ("Breaking balls", "BreakingBallsWonPer60", "green"),
+        ("Kickouts won", "KickoutsWonPer60", "green"),
+        ("Assists", "AssistsPer60", "amber"),
+        ("Score value", "ScoreValuePer60", "amber"),
+    ]
+    render_metric_tiles(
+        [
+            {
+                "label": label,
+                "value": _format_per_60(player[column]),
+                "tone": tone,
+            }
+            for label, column, tone in definitions
+        ],
+        columns_per_row=4,
+        compact=True,
+    )
 
 
 def _trend_chart(data, columns, labels, title, percentage=False):
@@ -468,18 +494,29 @@ def render_player_championship(
     summary = build_player_championship_summary(player_data)
     players_used = int(summary["Games"].gt(0).sum())
 
-    with st.container(horizontal=True):
-        st.metric(
-            "Championship matches",
-            f"{player_data['MatchID'].nunique()}",
-            border=True,
-        )
-        st.metric("Players used", f"{players_used}", border=True)
-        st.metric(
-            "Total player minutes",
-            f"{int(summary['MinutesPlayed'].sum())}",
-            border=True,
-        )
+    render_metric_tiles(
+        [
+            {
+                "label": "Championship matches",
+                "value": f"{player_data['MatchID'].nunique()}",
+                "detail": "Season sample",
+                "tone": "blue",
+            },
+            {
+                "label": "Players used",
+                "value": f"{players_used}",
+                "detail": "Championship squad",
+                "tone": "purple",
+            },
+            {
+                "label": "Total player minutes",
+                "value": f"{int(summary['MinutesPlayed'].sum()):,}",
+                "detail": "Across all appearances",
+                "tone": "amber",
+            },
+        ],
+        columns_per_row=3,
+    )
 
     player_options = sorted(summary["PlayerName"].tolist())
     if fixed_player:
@@ -502,12 +539,7 @@ def render_player_championship(
         summary["PlayerName"] == selected_player
     ].iloc[0]
 
-    st.subheader(f"{selected_player} — {player['Position']}")
-    captain_label = " | Captain" if player["Captain"] else ""
-    st.caption(
-        f"Squad #{int(player['SquadNumber'])}{captain_label} | "
-        f"Championship totals"
-    )
+    _render_player_identity(player, selected_player)
     _render_profile_metrics(player)
     _render_per_60_metrics(player)
 

@@ -10,21 +10,23 @@ from match_formatting import (
     LIGHT_AMBER,
     format_pct,
     format_scope_count,
+    render_metric_tiles,
 )
 
 
 def render_kickouts(match_kickouts, show_averages):
-    st.header("Kickout Analysis")
+    st.header("Kickout analysis")
 
 
-    kickout_period = st.radio(
-        "Kickout Period",
+    kickout_period = st.segmented_control(
+        "Kickout period",
         options=[
             "FT",
             "1H",
             "2H",
         ],
-        horizontal=True,
+        default="FT",
+        key="match_kickout_period",
     )
 
 
@@ -43,28 +45,30 @@ def render_kickouts(match_kickouts, show_averages):
     ]
 
 
-    col1, col2 = st.columns(2)
-
-
+    tiles = []
     if not own.empty:
 
         own_row = own.iloc[0]
-
-        col1.metric(
-            (
-                "Avg Own Kickouts Won"
-                if show_averages
-                else "Own Kickouts Won"
-            ),
-            f"{format_scope_count(own_row['Won'], show_averages)}/"
-            f"{format_scope_count(own_row['Taken'], show_averages)}",
-        )
-
-        col1.metric(
-            "Own Retention %",
-            format_pct(
-                own_row["WinPct"]
-            ),
+        tiles.extend(
+            [
+                {
+                    "label": (
+                        "Avg own KOs won"
+                        if show_averages
+                        else "Own KOs won"
+                    ),
+                    "value": (
+                        f"{format_scope_count(own_row['Won'], show_averages)} / "
+                        f"{format_scope_count(own_row['Taken'], show_averages)}"
+                    ),
+                    "tone": "purple",
+                },
+                {
+                    "label": "Own retention",
+                    "value": format_pct(own_row["WinPct"]),
+                    "tone": "green",
+                },
+            ]
         )
 
 
@@ -72,25 +76,32 @@ def render_kickouts(match_kickouts, show_averages):
 
         opp_row = opponent.iloc[0]
 
-        col2.metric(
-            (
-                "Avg Opponent Kickouts Won"
-                if show_averages
-                else "Opponent Kickouts Won"
-            ),
-            f"{format_scope_count(opp_row['Won'], show_averages)}/"
-            f"{format_scope_count(opp_row['Taken'], show_averages)}",
+        tiles.extend(
+            [
+                {
+                    "label": (
+                        "Avg opposition KOs won"
+                        if show_averages
+                        else "Opposition KOs won"
+                    ),
+                    "value": (
+                        f"{format_scope_count(opp_row['Won'], show_averages)} / "
+                        f"{format_scope_count(opp_row['Taken'], show_averages)}"
+                    ),
+                    "tone": "blue",
+                },
+                {
+                    "label": "Opposition KO win rate",
+                    "value": format_pct(opp_row["WinPct"]),
+                    "tone": "amber",
+                },
+            ]
         )
 
-        col2.metric(
-            "Opposition KO Win %",
-            format_pct(
-                opp_row["WinPct"]
-            ),
-        )
+    render_metric_tiles(tiles, columns_per_row=4, compact=True)
 
 
-    st.subheader("Kickout Comparison")
+    st.markdown("#### Kickout comparison")
 
     fig = px.bar(
         ko_period,
@@ -118,9 +129,7 @@ def render_kickouts(match_kickouts, show_averages):
     )
 
 
-    st.subheader(
-        "Kickout Win Type"
-    )
+    st.markdown("#### Kickout win type")
 
     ko_breakdown = ko_period[
         [

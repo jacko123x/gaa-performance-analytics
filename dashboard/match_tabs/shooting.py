@@ -3,21 +3,27 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from match_formatting import AMBER, format_pct, format_scope_count
+from match_formatting import (
+    AMBER,
+    format_pct,
+    format_scope_count,
+    render_metric_tiles,
+)
 
 
 def render_shooting(match_shooting, show_averages):
-    st.header("Shooting Analysis")
+    st.header("Shooting analysis")
 
 
-    period_selection = st.radio(
+    period_selection = st.segmented_control(
         "Period",
         options=[
             "FT",
             "1H",
             "2H",
         ],
-        horizontal=True,
+        default="FT",
+        key="match_shooting_period",
     )
 
 
@@ -37,37 +43,35 @@ def render_shooting(match_shooting, show_averages):
 
         row = overall_shooting.iloc[0]
 
-        col1, col2, col3, col4 = st.columns(4)
-
-        col1.metric(
-            "Avg Shots" if show_averages else "Shots",
-            format_scope_count(
-                row["ShotsTaken"],
-                show_averages,
-            ),
-        )
-
-        col2.metric(
-            "Avg Scores" if show_averages else "Scores",
-            format_scope_count(
-                row["ShotsScored"],
-                show_averages,
-            ),
-        )
-
-        col3.metric(
-            "Conversion",
-            format_pct(
-                row["ShotConversionPct"]
-            ),
-        )
-
-        col4.metric(
-            "Avg Misses" if show_averages else "Misses",
-            format_scope_count(
-                row["Misses"],
-                show_averages,
-            ),
+        render_metric_tiles(
+            [
+                {
+                    "label": "Avg shots" if show_averages else "Shots",
+                    "value": format_scope_count(
+                        row["ShotsTaken"], show_averages
+                    ),
+                    "tone": "purple",
+                },
+                {
+                    "label": "Avg scores" if show_averages else "Scores",
+                    "value": format_scope_count(
+                        row["ShotsScored"], show_averages
+                    ),
+                    "tone": "green",
+                },
+                {
+                    "label": "Conversion",
+                    "value": format_pct(row["ShotConversionPct"]),
+                    "tone": "amber",
+                },
+                {
+                    "label": "Avg misses" if show_averages else "Misses",
+                    "value": format_scope_count(row["Misses"], show_averages),
+                    "tone": "red",
+                },
+            ],
+            columns_per_row=4,
+            compact=True,
         )
 
 
@@ -79,9 +83,7 @@ def render_shooting(match_shooting, show_averages):
 
     if not shot_types.empty:
 
-        st.subheader(
-            "Conversion by Shot Type"
-        )
+        st.markdown("#### Conversion by shot type")
 
         fig = px.bar(
             shot_types,
@@ -109,7 +111,7 @@ def render_shooting(match_shooting, show_averages):
 
     if not overall_shooting.empty:
 
-        st.subheader("Miss Analysis")
+        st.markdown("#### Miss analysis")
 
         miss_data = pd.DataFrame(
             {

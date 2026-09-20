@@ -8,21 +8,23 @@ from match_formatting import (
     format_pct,
     format_scope_count,
     format_signed,
+    render_metric_tiles,
 )
 
 
 def render_turnovers(match_turnovers, show_averages):
-    st.header("Turnover Analysis")
+    st.header("Turnover analysis")
 
 
-    turnover_period = st.radio(
-        "Turnover Period",
+    turnover_period = st.segmented_control(
+        "Turnover period",
         options=[
             "FT",
             "1H",
             "2H",
         ],
-        horizontal=True,
+        default="FT",
+        key="match_turnover_period",
     )
 
 
@@ -36,59 +38,53 @@ def render_turnovers(match_turnovers, show_averages):
 
         row = period_turnovers.iloc[0]
 
-        col1, col2, col3, col4 = st.columns(4)
-
-        col1.metric(
-            (
-                "Avg Turnovers Won"
-                if show_averages
-                else "Turnovers Won"
-            ),
-            format_scope_count(
-                row["TurnoversWon"],
-                show_averages,
-            ),
-        )
-
-        col2.metric(
-            (
-                "Avg Turnovers Lost"
-                if show_averages
-                else "Turnovers Lost"
-            ),
-            format_scope_count(
-                row["TurnoversLost"],
-                show_averages,
-            ),
-        )
-
-        col3.metric(
-            (
-                "Avg Differential"
-                if show_averages
-                else "Differential"
-            ),
-            format_signed(
-                row["TurnoverDifferential"],
-                decimals=(
-                    1
-                    if show_averages
-                    else 0
-                ),
-            ),
-        )
-
-        col4.metric(
-            "Forced Won %",
-            format_pct(
-                row["ForcedTurnoverPct"]
-            ),
+        differential = row["TurnoverDifferential"]
+        render_metric_tiles(
+            [
+                {
+                    "label": (
+                        "Avg turnovers won"
+                        if show_averages
+                        else "Turnovers won"
+                    ),
+                    "value": format_scope_count(
+                        row["TurnoversWon"], show_averages
+                    ),
+                    "tone": "green",
+                },
+                {
+                    "label": (
+                        "Avg turnovers lost"
+                        if show_averages
+                        else "Turnovers lost"
+                    ),
+                    "value": format_scope_count(
+                        row["TurnoversLost"], show_averages
+                    ),
+                    "tone": "red",
+                },
+                {
+                    "label": (
+                        "Avg differential" if show_averages else "Differential"
+                    ),
+                    "value": format_signed(
+                        differential,
+                        decimals=1 if show_averages else 0,
+                    ),
+                    "tone": "green" if differential >= 0 else "red",
+                },
+                {
+                    "label": "Forced won",
+                    "value": format_pct(row["ForcedTurnoverPct"]),
+                    "tone": "blue",
+                },
+            ],
+            columns_per_row=4,
+            compact=True,
         )
 
 
-        st.subheader(
-            "Turnover Breakdown"
-        )
+        st.markdown("#### Turnover breakdown")
 
         turnover_breakdown = pd.DataFrame(
             {

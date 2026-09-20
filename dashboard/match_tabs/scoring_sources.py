@@ -2,11 +2,12 @@
 import plotly.express as px
 import streamlit as st
 
-from match_formatting import AMBER, format_scope_count
+from match_formatting import AMBER, format_scope_count, render_metric_tiles
 
 
 def render_scoring_sources(match_scoring_sources, show_averages):
-    st.header("Scoring Sources")
+    st.header("Scoring sources")
+    value_format = ".1f" if show_averages else ".0f"
 
 
     total_sources = (
@@ -24,26 +25,25 @@ def render_scoring_sources(match_scoring_sources, show_averages):
     )
 
 
-    col1, col2 = st.columns(2)
-
-    col1.metric(
-        "Avg Scores" if show_averages else "Scores",
-        format_scope_count(
-            total_sources,
-            show_averages,
-        ),
-    )
-
-    col2.metric(
-        (
-            "Avg Scores from Turnovers"
-            if show_averages
-            else "Scores from Turnovers"
-        ),
-        format_scope_count(
-            turnover_scores,
-            show_averages,
-        ),
+    render_metric_tiles(
+        [
+            {
+                "label": "Avg scores" if show_averages else "Scores",
+                "value": format_scope_count(total_sources, show_averages),
+                "tone": "amber",
+            },
+            {
+                "label": (
+                    "Avg scores from turnovers"
+                    if show_averages
+                    else "Scores from turnovers"
+                ),
+                "value": format_scope_count(turnover_scores, show_averages),
+                "tone": "green",
+            },
+        ],
+        columns_per_row=2,
+        compact=True,
     )
 
 
@@ -61,6 +61,12 @@ def render_scoring_sources(match_scoring_sources, show_averages):
 
     fig.update_traces(
         textposition="outside",
+        texttemplate=f"%{{y:{value_format}}}",
+        hovertemplate=(
+            "<b>%{x}</b><br>"
+            f"Scores: %{{y:{value_format}}}"
+            "<extra></extra>"
+        ),
     )
 
     fig.update_layout(
@@ -75,7 +81,7 @@ def render_scoring_sources(match_scoring_sources, show_averages):
 
 
     st.subheader(
-        "Scoring Source Distribution"
+        "Scoring source distribution"
     )
 
     pie_data = match_scoring_sources[
@@ -93,31 +99,33 @@ def render_scoring_sources(match_scoring_sources, show_averages):
 
     fig.update_traces(
         textposition="inside",
-        textinfo="percent+label+value",
-        textfont_size=16,
+        texttemplate=(
+            "%{label}<br>"
+            f"%{{value:{value_format}}} · %{{percent:.1%}}"
+        ),
+        hovertemplate=(
+            "<b>%{label}</b><br>"
+            f"Scores: %{{value:{value_format}}}<br>"
+            "Share: %{percent:.1%}"
+            "<extra></extra>"
+        ),
+        textfont_size=13,
         marker=dict(
             line=dict(
-                width=2,
+                width=1.5,
             )
         ),
     )
 
 
     fig.update_layout(
-        height=720,
-
-        title={
-            "text": "Scoring Source Distribution",
-            "x": 0.5,
-            "xanchor": "center",
-            "font": {
-                "size": 24,
-            },
-        },
+        height=570,
+        uniformtext_minsize=11,
+        uniformtext_mode="hide",
 
         legend=dict(
             font=dict(
-                size=16,
+                size=14,
             ),
             orientation="v",
             yanchor="middle",
@@ -127,10 +135,10 @@ def render_scoring_sources(match_scoring_sources, show_averages):
         ),
 
         margin=dict(
-            l=20,
-            r=220,
-            t=80,
-            b=20,
+            l=10,
+            r=190,
+            t=20,
+            b=10,
         ),
     )
 
@@ -142,7 +150,7 @@ def render_scoring_sources(match_scoring_sources, show_averages):
         ),
         x=0.5,
         y=0.5,
-        font_size=22,
+        font_size=18,
         showarrow=False,
     )
 

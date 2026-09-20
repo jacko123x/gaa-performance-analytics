@@ -2,7 +2,12 @@
 import plotly.express as px
 import streamlit as st
 
-from match_formatting import AMBER, format_number, format_pct
+from match_formatting import (
+    AMBER,
+    format_number,
+    format_pct,
+    render_metric_tiles,
+)
 
 
 def render_leaders(match_players, show_averages):
@@ -51,7 +56,7 @@ def render_leaders(match_players, show_averages):
 
 
         selected_metric_label = st.selectbox(
-            "Leaderboard Metric",
+            "Leaderboard metric",
             options=list(
                 metric_options.keys()
             ),
@@ -161,17 +166,9 @@ def render_leaders(match_players, show_averages):
 
             top_three = leaderboard.head(3)
 
-            top_columns = st.columns(
-                min(
-                    3,
-                    len(top_three),
-                )
-            )
-
-
-            for index, (_, player) in enumerate(
-                top_three.iterrows()
-            ):
+            leader_tiles = []
+            podium_tones = ["amber", "blue", "purple"]
+            for index, (_, player) in enumerate(top_three.iterrows()):
 
                 value = player[
                     selected_metric
@@ -193,12 +190,23 @@ def render_leaders(match_players, show_averages):
                     )
 
 
-                top_columns[index].metric(
-                    player[
-                        "PlayerName"
-                    ],
-                    display_value,
+                leader_tiles.append(
+                    {
+                        "label": f"#{index + 1} {player['PlayerName']}",
+                        "value": display_value,
+                        "detail": (
+                            f"{player['Position']} · "
+                            f"{int(player['MinutesPlayed'])} minutes"
+                        ),
+                        "tone": podium_tones[index],
+                    }
                 )
+
+            render_metric_tiles(
+                leader_tiles,
+                columns_per_row=3,
+                compact=False,
+            )
 
 
             # --------------------------------------------------

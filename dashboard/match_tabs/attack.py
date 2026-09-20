@@ -3,45 +3,44 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from match_formatting import AMBER, format_pct
+from match_formatting import AMBER, format_pct, render_metric_tiles
 
 
 def render_attack(match_team, show_averages):
     st.header(
-        "Average Attack Efficiency"
+        "Average attack efficiency"
         if show_averages
-        else "Attack Efficiency"
+        else "Attack efficiency"
     )
 
     if not match_team.empty:
 
         row = match_team.iloc[0]
 
-        col1, col2, col3 = st.columns(3)
-
-        col1.metric(
-            "Attack → Shot",
-            format_pct(
-                row["AttackToShotPct"]
-            ),
+        render_metric_tiles(
+            [
+                {
+                    "label": "Attack → shot",
+                    "value": format_pct(row["AttackToShotPct"]),
+                    "tone": "blue",
+                },
+                {
+                    "label": "Attack → score",
+                    "value": format_pct(row["AttackToScorePct"]),
+                    "tone": "green",
+                },
+                {
+                    "label": "Shot conversion",
+                    "value": format_pct(row["ShotConversionPct"]),
+                    "tone": "amber",
+                },
+            ],
+            columns_per_row=3,
+            compact=True,
         )
 
-        col2.metric(
-            "Attack → Score",
-            format_pct(
-                row["AttackToScorePct"]
-            ),
-        )
 
-        col3.metric(
-            "Shot Conversion",
-            format_pct(
-                row["ShotConversionPct"]
-            ),
-        )
-
-
-        st.subheader("Attack Funnel")
+        st.markdown("#### Attack funnel")
 
         funnel_data = pd.DataFrame(
             {
@@ -76,9 +75,7 @@ def render_attack(match_team, show_averages):
         )
 
 
-        st.subheader(
-            "Open Play vs Placed Ball"
-        )
+        st.markdown("#### Open play vs placed ball")
 
         conversion_data = pd.DataFrame(
             {
